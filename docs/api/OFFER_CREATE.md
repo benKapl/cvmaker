@@ -69,20 +69,19 @@ Format a job offer to cvmaker's format and save it to database
 
 - **Error Response:**
 
-  <_Most endpoints will have many ways they can fail. From unauthorized access, to wrongful parameters etc. All of those should be liste d here. It might seem repetitive, but it helps prevent assumptions from being made where they should be._>
-
   - **Code:** 401 UNAUTHORIZED <br />
-    **Content:** `{ error : "Log in" }`
-
-  OR
-
-  - **Code:** 422 UNPROCESSABLE ENTRY <br />
-    **Content:** `{ error : "Email Invalid" }`
+    **Content:** `{ error : "You are unauthorized to make this request." }`
 
 - **Sample Call:**
 
-  <_Just a sample call to your endpoint in a runnable format ($.ajax call or a curl request) - this makes life easier and more predictable._>
+  ```bash
+  curl -X POST \
+      -H "Authorization: Bearer <my-secret-token>" \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      --data-urlencode "body=<text>" \
+      BASE_URL/offers
+  ```
 
 - **Notes:**
 
-  <_This is where all uncertainties, commentary, discussion etc. can go. I recommend timestamping and identifying oneself when leaving comments here._>
+  This is an authenticated route
