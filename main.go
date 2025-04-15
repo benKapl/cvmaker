@@ -15,6 +15,7 @@ type apiConfig struct {
 	db        *database.Queries
 	platform  string
 	JWTsecret string
+	JWTissuer string
 	port      string
 }
 
@@ -31,9 +32,13 @@ func main() {
 	if platform == "" {
 		log.Fatal("PLATFORM must be set")
 	}
-	JWTSecret := os.Getenv("JWT_SECRET")
-	if JWTSecret == "" {
+	JWTsecret := os.Getenv("JWT_SECRET")
+	if JWTsecret == "" {
 		log.Fatal("JWTSecret must be set")
+	}
+	JWTissuer := os.Getenv("JWT_ISSUER")
+	if JWTissuer == "" {
+		log.Fatal("JWTissuer must be set")
 	}
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -50,16 +55,19 @@ func main() {
 	apiCfg := apiConfig{
 		db:        dbQueries,
 		platform:  platform,
-		JWTsecret: JWTSecret,
+		JWTsecret: JWTsecret,
+		JWTissuer: JWTissuer,
 		port:      port,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
 
+	globalMux := LoggingMiddleware(mux)
+
 	srv := &http.Server{
 		Addr:    ":" + apiCfg.port,
-		Handler: mux,
+		Handler: globalMux,
 	}
 
 	log.Printf("Starting server on port %s\n", port)
