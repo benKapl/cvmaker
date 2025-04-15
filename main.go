@@ -1,12 +1,12 @@
 package main
 
 import (
-	"cvmaker_api/internal/database"
 	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/benKapl/cvmaker_api/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -55,6 +55,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
 
 	srv := &http.Server{
 		Addr:    ":" + apiCfg.port,
