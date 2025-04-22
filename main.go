@@ -62,6 +62,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
+	mux.HandleFunc("POST /api/reset", apiCfg.handlerReset)
 
 	globalMux := LoggingMiddleware(mux)
 

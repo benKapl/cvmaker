@@ -9,7 +9,8 @@ CREATE TABLE offers(
     missions TEXT NOT NULL,
     stack TEXT,
     expected_profile TEXT NOT NULL,
-    miscellaneous TEXT
+    miscellaneous TEXT,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- +goose Down

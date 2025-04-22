@@ -7,6 +7,8 @@ package database
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Offer struct {
@@ -20,19 +22,20 @@ type Offer struct {
 	Stack                   sql.NullString
 	ExpectedProfile         string
 	Miscellaneous           sql.NullString
+	UserID                  uuid.UUID
 }
 
 type RefreshToken struct {
 	Token     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	UserID    int32
+	UserID    uuid.UUID
 	ExpiresAt time.Time
 	RevokedAt sql.NullTime
 }
 
 type User struct {
-	ID        int32
+	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Email     string
