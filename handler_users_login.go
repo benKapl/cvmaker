@@ -3,20 +3,13 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/database"
 	"github.com/benKapl/goauth"
+	"github.com/lib/pq"
 )
 
-type User struct {
-	ID        int       `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
-}
-
-func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -34,6 +27,17 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	user, err := cfg.db.GetUser(r.Context(), params.Email)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Incorrect Email or Password", err)
+		return
+	}
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		return
+	}
+
 	hash, err := goauth.HashPassword(params.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't hash password", err)
@@ -44,7 +48,14 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		Email:    params.Email,
 		Password: hash,
 	})
+
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23505" {
+				respondWithError(w, http.StatusBadRequest, "User already exists", err)
+				return
+			}
+		}
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create user", err)
 		return
 	}
