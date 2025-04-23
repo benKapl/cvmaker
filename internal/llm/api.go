@@ -1,0 +1,5 @@
+package llm
+
+const (
+	baseUrl = ""
+)

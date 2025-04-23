@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -29,4 +30,13 @@ func handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 	type response struct {
 		Offer
 	}
+
+	decoder := json.NewDecoder(r.Body)
+	var params parameters
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		return
+	}
+
 }

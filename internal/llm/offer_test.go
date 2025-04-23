@@ -1,10 +1,8 @@
-package llm_test
+package llm
 
 import (
 	"slices"
 	"testing"
-
-	"github.com/benKapl/cvmaker_api/internal/llm"
 )
 
 func TestFormatLLMResponse(t *testing.T) {
@@ -22,7 +20,7 @@ func TestFormatLLMResponse(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, _ := llm.FormatLLMResponse(tc.input)
+			got, _ := formatLLMOffer(tc.input)
 			if !slices.Equal(got, tc.want) {
 				t.Errorf("got %q, but want %q", got, tc.want)
 			}
