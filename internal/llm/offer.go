@@ -3,6 +3,7 @@ package llm
 type LLMOffer struct {
 	Missions        string
 	ExpectedProfile string
+	Stack           string
 }
 
 func ParseOffer(rawOffer string) (LLMOffer, error) {

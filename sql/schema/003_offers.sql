@@ -3,7 +3,7 @@ CREATE TABLE offers(
     id UUID PRIMARY KEY,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    label TEXT UNIQUE NOT NULL,
+    label TEXT NOT NULL,
     organization TEXT NOT NULL,
     organization_description TEXT,
     missions TEXT NOT NULL,

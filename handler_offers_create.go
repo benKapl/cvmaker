@@ -12,17 +12,17 @@ import (
 )
 
 type Offer struct {
-	ID                      uuid.UUID  `json:"id"`
-	CreatedAt               time.Time  `json:"created_at"`
-	UpdatedAt               time.Time  `json:"updated_at"`
-	Label                   string     `json:"label"`
-	Organization            string     `json:"organization"`
-	OrganizationDescription *string    `json:"organization_description,omitempty"`
-	Missions                string     `json:"missions"`
-	Stack                   *string    `json:"stack,omitempty"`
-	ExpectedProfile         string     `json:"expected_profile"`
-	Miscellaneous           *string    `json:"miscellaneous,omitempty"`
-	UserID                  uuid.UUID  `json:"user_id"`
+	ID                      uuid.UUID `json:"id"`
+	CreatedAt               time.Time `json:"created_at"`
+	UpdatedAt               time.Time `json:"updated_at"`
+	Label                   string    `json:"label"`
+	Organization            string    `json:"organization"`
+	OrganizationDescription *string   `json:"organization_description,omitempty"`
+	Missions                string    `json:"missions"`
+	Stack                   *string   `json:"stack,omitempty"`
+	ExpectedProfile         string    `json:"expected_profile"`
+	Miscellaneous           *string   `json:"miscellaneous,omitempty"`
+	UserID                  uuid.UUID `json:"user_id"`
 }
 
 func databaseOfferToOffer(dbOffer database.Offer) Offer {
@@ -81,10 +81,16 @@ func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// IMPORTANT
+	// Need to manage NULL STRINGS behavior !
+	// Do that after creating LLM functions
+
 	// Create optional fields with sql.NullString
 	orgDescription := sql.NullString{String: "Une boite qui fait des trucs d'enculés", Valid: true}
-	
+
 	// Optional fields initialized as null
+	if llmOffer.Stack == "" {
+	}
 	stack := sql.NullString{Valid: false}
 	miscellaneous := sql.NullString{Valid: false}
 
@@ -98,15 +104,15 @@ func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request
 		Miscellaneous:           miscellaneous,
 		UserID:                  userID,
 	})
-	
+
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create offer", err)
 		return
 	}
-	
+
 	// Convert database offer to response offer
 	responseOffer := databaseOfferToOffer(offer)
-	
+
 	respondWithJSON(w, http.StatusCreated, response{
 		Offer: responseOffer,
 	})
