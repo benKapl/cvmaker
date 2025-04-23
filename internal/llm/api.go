@@ -1,5 +1,0 @@
-package llm
-
-const (
-	baseUrl = ""
-)

@@ -6,12 +6,13 @@ import (
 )
 
 type Client struct {
+	baseUrl    string
 	httpClient http.Client
 }
 
-// NewClient
 func NewClient(timeout time.Duration) Client {
 	return Client{
+		baseUrl: baseUrl,
 		httpClient: http.Client{
 			Timeout: timeout,
 		},

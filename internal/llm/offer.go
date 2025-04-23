@@ -1,9 +1,13 @@
 package llm
 
 type LLMOffer struct {
-	Missions        string
-	ExpectedProfile string
-	Stack           string
+	Label                   string
+	Organization            string
+	OrganizationDescription string
+	Missions                string
+	Stack                   string
+	ExpectedProfile         string
+	Miscellaneous           string
 }
 
 func ParseOffer(rawOffer string) (LLMOffer, error) {
