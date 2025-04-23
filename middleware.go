@@ -46,7 +46,7 @@ func (cfg *apiConfig) AuthenticateMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, err := goauth.ValidateJWT(token, cfg.JWTissuer, cfg.JWTsecret)
+		userID, err := goauth.ValidateJWT(token, cfg.JWTsecret, cfg.JWTissuer)
 		if err != nil {
 			respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 			return
