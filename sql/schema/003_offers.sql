@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE offers(
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     label TEXT UNIQUE NOT NULL,

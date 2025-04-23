@@ -38,7 +38,6 @@ VALUES (
     $6,
     $7,
     $8
-
 )
 RETURNING id, created_at, updated_at, label, organization, organization_description, missions, stack, expected_profile, miscellaneous, user_id
 `
