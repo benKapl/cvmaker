@@ -1,0 +1,32 @@
+package llm_test
+
+import (
+	"slices"
+	"testing"
+
+	"github.com/benKapl/cvmaker_api/internal/llm"
+)
+
+func TestFormatLLMResponse(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input string
+		want  []string
+	}{
+		{
+			name:  "Hyphen list",
+			input: "- one\n- two",
+			want:  []string{"one", "two"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, _ := llm.FormatLLMResponse(tc.input)
+			if !slices.Equal(got, tc.want) {
+				t.Errorf("got %q, but want %q", got, tc.want)
+			}
+		})
+
+	}
+}
