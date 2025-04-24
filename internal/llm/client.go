@@ -8,6 +8,7 @@ import (
 type Client struct {
 	baseUrl    string
 	httpClient http.Client
+	LLMConfig  LLMConfig
 }
 
 func NewClient(timeout time.Duration) Client {

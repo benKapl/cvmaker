@@ -25,33 +25,6 @@ type Offer struct {
 	UserID                  uuid.UUID `json:"user_id"`
 }
 
-func databaseOfferToOffer(dbOffer database.Offer) Offer {
-	offer := Offer{
-		ID:              dbOffer.ID,
-		CreatedAt:       dbOffer.CreatedAt,
-		UpdatedAt:       dbOffer.UpdatedAt,
-		Label:           dbOffer.Label,
-		Organization:    dbOffer.Organization,
-		Missions:        dbOffer.Missions,
-		ExpectedProfile: dbOffer.ExpectedProfile,
-		UserID:          dbOffer.UserID,
-	}
-
-	if dbOffer.OrganizationDescription.Valid {
-		offer.OrganizationDescription = &dbOffer.OrganizationDescription.String
-	}
-
-	if dbOffer.Stack.Valid {
-		offer.Stack = &dbOffer.Stack.String
-	}
-
-	if dbOffer.Miscellaneous.Valid {
-		offer.Miscellaneous = &dbOffer.Miscellaneous.String
-	}
-
-	return offer
-}
-
 func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
@@ -116,4 +89,31 @@ func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, http.StatusCreated, response{
 		Offer: responseOffer,
 	})
+}
+
+func databaseOfferToOffer(dbOffer database.Offer) Offer {
+	offer := Offer{
+		ID:              dbOffer.ID,
+		CreatedAt:       dbOffer.CreatedAt,
+		UpdatedAt:       dbOffer.UpdatedAt,
+		Label:           dbOffer.Label,
+		Organization:    dbOffer.Organization,
+		Missions:        dbOffer.Missions,
+		ExpectedProfile: dbOffer.ExpectedProfile,
+		UserID:          dbOffer.UserID,
+	}
+
+	if dbOffer.OrganizationDescription.Valid {
+		offer.OrganizationDescription = &dbOffer.OrganizationDescription.String
+	}
+
+	if dbOffer.Stack.Valid {
+		offer.Stack = &dbOffer.Stack.String
+	}
+
+	if dbOffer.Miscellaneous.Valid {
+		offer.Miscellaneous = &dbOffer.Miscellaneous.String
+	}
+
+	return offer
 }
