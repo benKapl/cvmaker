@@ -14,7 +14,7 @@ import (
 type apiConfig struct {
 	db        *database.Queries
 	platform  string
-	JWTsecret string
+	JWTSecret string
 	port      string
 }
 
@@ -31,8 +31,8 @@ func main() {
 	if platform == "" {
 		log.Fatal("PLATFORM must be set")
 	}
-	JWTsecret := os.Getenv("JWT_SECRET")
-	if JWTsecret == "" {
+	JWTSecret := os.Getenv("JWT_SECRET")
+	if JWTSecret == "" {
 		log.Fatal("JWTSecret must be set")
 	}
 	port := os.Getenv("PORT")
@@ -50,7 +50,7 @@ func main() {
 	apiCfg := apiConfig{
 		db:        dbQueries,
 		platform:  platform,
-		JWTsecret: JWTsecret,
+		JWTSecret: JWTSecret,
 		port:      port,
 	}
 
