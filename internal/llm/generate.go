@@ -8,9 +8,10 @@ import (
 )
 
 type GenerateParams struct {
-	Prompt string `json:"prompt"`
-	Model  string `json:"model"`
-	Stream bool   `json:"stream"`
+	Model  string                 `json:"model"`
+	Prompt string                 `json:"prompt"`
+	Format map[string]interface{} `json:"format,omitempty"`
+	Stream bool                   `json:"stream"`
 }
 type GenerateResponse struct {
 	Model              string    `json:"model"`
@@ -27,12 +28,13 @@ type GenerateResponse struct {
 	EvalDuration       int64     `json:"eval_duration"`
 }
 
-func (c *Client) Generate(prompt string) (GenerateResponse, error) {
+func (c *Client) Generate(prompt string, format map[string]interface{}) (GenerateResponse, error) {
 	url := c.baseUrl + "/api/generate"
 
 	params := GenerateParams{
 		Prompt: prompt,
 		Model:  c.llmConfig.model,
+		Format: format,
 		Stream: c.llmConfig.isStreamed,
 	}
 

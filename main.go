@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -61,14 +60,14 @@ func main() {
 		llmClient: llmClient,
 	}
 
-	prompt := "How many fingers do I have ?"
-	go func() {
-		res, err := apiCfg.llmClient.Generate(prompt)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-		fmt.Println(res)
-	}()
+	// prompt := llm.OfferPromptStart + "I am the company Decathlon, i am recruiting a salesman. The salary is 10.000 euros per year. You misson will be to sell our products" + llm.OfferPromptEnd
+	// go func() {
+	// 	res, err := apiCfg.llmClient.Generate(prompt, llm.OfferFormat)
+	// 	if err != nil {
+	// 		log.Fatalf("Error: %s", err)
+	// 	}
+	// 	fmt.Println(res)
+	// }()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/reset", apiCfg.handlerReset)

@@ -1,0 +1,46 @@
+curl http://localhost:11434/api/generate -d '{
+  "model": "mistral",
+  "prompt": "Extract the following information from the job offer provided below and return it as a JSON object:\n\n- title (required)\n- organization (required) - the name of the postee\n- organization_description\n- missions (required)\n- stack\n- expected_profile (required)\n- miscellaneous (all other relevant info)\n\nEnsure the output is a valid JSON object matching the specified structure. If a field is not found and is not required, omit it. Place any extra information not fitting the specific fields into the miscellaneous field.\n\nJob Offer:\n\"\"\"\nI am the company Decathlon, i am recruiting a salesman. The salary is 10.000 euros per year. You misson will be to sell our products\n\"\"\"\n\nJSON Output:",
+  "format": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string"
+      },
+      "organization": {
+        "type": "string"
+      },
+      "organization_description": {
+        "type": "string"
+      },
+      "missions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "stack": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "expected_profile": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "miscellaneous": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "title",
+      "organization",
+      "missions",
+      "expected_profile"
+    ]
+  },
+  "stream": false
+}'
