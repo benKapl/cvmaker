@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/benKapl/cvmaker_api/internal/auth"
 	"github.com/benKapl/cvmaker_api/internal/database"
-	"github.com/benKapl/goauth"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -36,7 +36,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	hash, err := goauth.HashPassword(params.Password)
+	hash, err := auth.HashPassword(params.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't hash password", err)
 		return

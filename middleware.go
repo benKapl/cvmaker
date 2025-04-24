@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/benKapl/goauth"
+	"github.com/benKapl/cvmaker_api/internal/auth"
 )
 
 type responseRecorder struct {
@@ -40,13 +40,13 @@ func (rr *responseRecorder) WriteHeader(statusCode int) {
 
 func (cfg *apiConfig) AuthenticateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, err := goauth.GetBearerToken(r.Header)
+		token, err := auth.GetBearerToken(r.Header)
 		if err != nil {
 			respondWithError(w, http.StatusUnauthorized, "Couldn't find JWT", err)
 			return
 		}
 
-		userID, err := goauth.ValidateJWT(token, cfg.JWTsecret, cfg.JWTissuer)
+		userID, err := auth.ValidateJWT(token, cfg.JWTsecret)
 		if err != nil {
 			respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 			return
