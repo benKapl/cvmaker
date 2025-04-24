@@ -15,7 +15,6 @@ type apiConfig struct {
 	db        *database.Queries
 	platform  string
 	JWTsecret string
-	JWTissuer string
 	port      string
 }
 
@@ -36,10 +35,6 @@ func main() {
 	if JWTsecret == "" {
 		log.Fatal("JWTSecret must be set")
 	}
-	JWTissuer := os.Getenv("JWT_ISSUER")
-	if JWTissuer == "" {
-		log.Fatal("JWTissuer must be set")
-	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("port must be set")
@@ -56,7 +51,6 @@ func main() {
 		db:        dbQueries,
 		platform:  platform,
 		JWTsecret: JWTsecret,
-		JWTissuer: JWTissuer,
 		port:      port,
 	}
 

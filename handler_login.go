@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/benKapl/cvmaker_api/internal/auth"
 	"github.com/benKapl/cvmaker_api/internal/database"
-	"github.com/benKapl/goauth"
 )
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -35,19 +35,19 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = goauth.CheckPasswordHash(params.Password, user.Password)
+	err = auth.CheckPasswordHash(params.Password, user.Password)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Incorrect Email or Password", err)
 		return
 	}
 
-	accessToken, err := goauth.MakeJWT(user.ID, cfg.JWTsecret, cfg.JWTissuer, time.Hour)
+	accessToken, err := auth.MakeJWT(user.ID, cfg.JWTsecret, time.Hour)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't make JWT", err)
 		return
 	}
 
-	refreshToken, err := goauth.MakeRefreshToken()
+	refreshToken, err := auth.MakeRefreshToken()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't make refresh token", err)
 		return
