@@ -2,11 +2,14 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/database"
+	"github.com/benKapl/cvmaker_api/internal/llm"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -16,6 +19,7 @@ type apiConfig struct {
 	platform  string
 	JWTSecret string
 	port      string
+	llmClient llm.Client
 }
 
 func main() {
@@ -47,12 +51,24 @@ func main() {
 	defer dbConn.Close()
 	dbQueries := database.New(dbConn)
 
+	llmClient := llm.NewClient(30 * time.Second) // 30 seconds of timeout to handle llm response time
+
 	apiCfg := apiConfig{
 		db:        dbQueries,
 		platform:  platform,
 		JWTSecret: JWTSecret,
 		port:      port,
+		llmClient: llmClient,
 	}
+
+	prompt := "How many fingers do I have ?"
+	go func() {
+		res, err := apiCfg.llmClient.Generate(prompt)
+		if err != nil {
+			log.Fatalf("Error: %s", err)
+		}
+		fmt.Println(res)
+	}()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/reset", apiCfg.handlerReset)

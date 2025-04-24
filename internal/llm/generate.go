@@ -32,8 +32,8 @@ func (c *Client) Generate(prompt string) (GenerateResponse, error) {
 
 	params := GenerateParams{
 		Prompt: prompt,
-		Model:  c.LLMConfig.model,
-		Stream: c.LLMConfig.isStreamed,
+		Model:  c.llmConfig.model,
+		Stream: c.llmConfig.isStreamed,
 	}
 
 	jsonData, err := json.Marshal(params)
