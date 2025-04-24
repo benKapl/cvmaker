@@ -10,6 +10,7 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const createOffer = `-- name: CreateOffer :one
@@ -17,7 +18,7 @@ INSERT INTO offers(
     id,
     created_at,
     updated_at,
-    label,
+    title,
     organization,
     organization_description,
     missions,
@@ -39,29 +40,29 @@ VALUES (
     $7,
     $8
 )
-RETURNING id, created_at, updated_at, label, organization, organization_description, missions, stack, expected_profile, miscellaneous, user_id
+RETURNING id, created_at, updated_at, title, organization, organization_description, missions, stack, expected_profile, miscellaneous, user_id
 `
 
 type CreateOfferParams struct {
-	Label                   string
+	Title                   string
 	Organization            string
 	OrganizationDescription sql.NullString
-	Missions                string
-	Stack                   sql.NullString
-	ExpectedProfile         string
-	Miscellaneous           sql.NullString
+	Missions                []string
+	Stack                   []string
+	ExpectedProfile         []string
+	Miscellaneous           []string
 	UserID                  uuid.UUID
 }
 
 func (q *Queries) CreateOffer(ctx context.Context, arg CreateOfferParams) (Offer, error) {
 	row := q.db.QueryRowContext(ctx, createOffer,
-		arg.Label,
+		arg.Title,
 		arg.Organization,
 		arg.OrganizationDescription,
-		arg.Missions,
-		arg.Stack,
-		arg.ExpectedProfile,
-		arg.Miscellaneous,
+		pq.Array(arg.Missions),
+		pq.Array(arg.Stack),
+		pq.Array(arg.ExpectedProfile),
+		pq.Array(arg.Miscellaneous),
 		arg.UserID,
 	)
 	var i Offer
@@ -69,13 +70,13 @@ func (q *Queries) CreateOffer(ctx context.Context, arg CreateOfferParams) (Offer
 		&i.ID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Label,
+		&i.Title,
 		&i.Organization,
 		&i.OrganizationDescription,
-		&i.Missions,
-		&i.Stack,
-		&i.ExpectedProfile,
-		&i.Miscellaneous,
+		pq.Array(&i.Missions),
+		pq.Array(&i.Stack),
+		pq.Array(&i.ExpectedProfile),
+		pq.Array(&i.Miscellaneous),
 		&i.UserID,
 	)
 	return i, err

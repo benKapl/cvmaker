@@ -28,7 +28,7 @@ type GenerateResponse struct {
 	EvalDuration       int64     `json:"eval_duration"`
 }
 
-func (c *Client) Generate(prompt string, format map[string]interface{}) (GenerateResponse, error) {
+func (c *Client) generate(prompt string, format map[string]interface{}) (GenerateResponse, error) {
 	url := c.baseUrl + "/api/generate"
 
 	params := GenerateParams{

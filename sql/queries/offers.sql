@@ -3,7 +3,7 @@ INSERT INTO offers(
     id,
     created_at,
     updated_at,
-    label,
+    title,
     organization,
     organization_description,
     missions,

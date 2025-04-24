@@ -1,13 +1,11 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/benKapl/cvmaker_api/internal/database"
-	"github.com/benKapl/cvmaker_api/internal/llm"
 	"github.com/google/uuid"
 )
 
@@ -48,72 +46,76 @@ func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	llmOffer, err := llm.ParseOffer(params.Body)
+	llmOffer, err := cfg.llmClient.ParseOffer(params.Body)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't parse offer", err)
 		return
 	}
 
+	fmt.Println(llmOffer)
+	fmt.Println(userID)
+
 	// IMPORTANT
+	// REVIEW COMPLETELY THE STRUCT MODEL
 	// Need to manage NULL STRINGS behavior !
 	// Do that after creating LLM functions
 
 	// Create optional fields with sql.NullString
-	orgDescription := sql.NullString{String: "Une boite qui fait des trucs d'enculés", Valid: true}
+	// orgDescription := sql.NullString{String: "Une boite qui fait des trucs d'enculés", Valid: true}
 
-	// Optional fields initialized as null
-	if llmOffer.Stack == "" {
-	}
-	stack := sql.NullString{Valid: false}
-	miscellaneous := sql.NullString{Valid: false}
+	// // Optional fields initialized as null
+	// if llmOffer.Stack == "" {
+	// }
+	// stack := sql.NullString{Valid: false}
+	// miscellaneous := sql.NullString{Valid: false}
 
-	offer, err := cfg.db.CreateOffer(r.Context(), database.CreateOfferParams{
-		Label:                   "FirstOffer",
-		Organization:            "EnculéCorp",
-		OrganizationDescription: orgDescription,
-		Missions:                llmOffer.Missions,
-		Stack:                   stack,
-		ExpectedProfile:         llmOffer.ExpectedProfile,
-		Miscellaneous:           miscellaneous,
-		UserID:                  userID,
-	})
+	// offer, err := cfg.db.CreateOffer(r.Context(), database.CreateOfferParams{
+	// 	Title:                   "FirstOffer",
+	// 	Organization:            "EnculéCorp",
+	// 	OrganizationDescription: orgDescription,
+	// 	Missions:                llmOffer.Missions,
+	// 	Stack:                   stack,
+	// 	ExpectedProfile:         llmOffer.ExpectedProfile,
+	// 	Miscellaneous:           miscellaneous,
+	// 	UserID:                  userID,
+	// })
 
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create offer", err)
-		return
-	}
+	// if err != nil {
+	// 	respondWithError(w, http.StatusInternalServerError, "Couldn't create offer", err)
+	// 	return
+	// }
 
-	// Convert database offer to response offer
-	responseOffer := databaseOfferToOffer(offer)
+	// // Convert database offer to response offer
+	// responseOffer := databaseOfferToOffer(offer)
 
-	respondWithJSON(w, http.StatusCreated, response{
-		Offer: responseOffer,
-	})
+	// respondWithJSON(w, http.StatusCreated, response{
+	// 	Offer: responseOffer,
+	// })
 }
 
-func databaseOfferToOffer(dbOffer database.Offer) Offer {
-	offer := Offer{
-		ID:              dbOffer.ID,
-		CreatedAt:       dbOffer.CreatedAt,
-		UpdatedAt:       dbOffer.UpdatedAt,
-		Label:           dbOffer.Label,
-		Organization:    dbOffer.Organization,
-		Missions:        dbOffer.Missions,
-		ExpectedProfile: dbOffer.ExpectedProfile,
-		UserID:          dbOffer.UserID,
-	}
+// func databaseOfferToOffer(dbOffer database.Offer) Offer {
+// 	offer := Offer{
+// 		ID:              dbOffer.ID,
+// 		CreatedAt:       dbOffer.CreatedAt,
+// 		UpdatedAt:       dbOffer.UpdatedAt,
+// 		Label:           dbOffer.Label,
+// 		Organization:    dbOffer.Organization,
+// 		Missions:        dbOffer.Missions,
+// 		ExpectedProfile: dbOffer.ExpectedProfile,
+// 		UserID:          dbOffer.UserID,
+// 	}
 
-	if dbOffer.OrganizationDescription.Valid {
-		offer.OrganizationDescription = &dbOffer.OrganizationDescription.String
-	}
+// 	if dbOffer.OrganizationDescription.Valid {
+// 		offer.OrganizationDescription = &dbOffer.OrganizationDescription.String
+// 	}
 
-	if dbOffer.Stack.Valid {
-		offer.Stack = &dbOffer.Stack.String
-	}
+// 	if dbOffer.Stack.Valid {
+// 		offer.Stack = &dbOffer.Stack.String
+// 	}
 
-	if dbOffer.Miscellaneous.Valid {
-		offer.Miscellaneous = &dbOffer.Miscellaneous.String
-	}
+// 	if dbOffer.Miscellaneous.Valid {
+// 		offer.Miscellaneous = &dbOffer.Miscellaneous.String
+// 	}
 
-	return offer
-}
+// 	return offer
+// }

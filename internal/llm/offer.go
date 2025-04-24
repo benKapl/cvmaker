@@ -1,5 +1,7 @@
 package llm
 
+import "fmt"
+
 type LLMOffer struct {
 	Label                   string
 	Organization            string
@@ -45,10 +47,18 @@ var (
 	offerPromptEnd   = "\n\"\"\"\n\nJSON Output:"
 )
 
-func ParseOffer(rawOffer string) (LLMOffer, error) {
+// Request the /api/generate endpoint with a job offer to parse
+func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
 	// REVIEW STRUCT MODEL !!!
 
-	// prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
+	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
+	res, err := c.generate(prompt, offerFormat)
+	if err != nil {
+		return LLMOffer{}, err
+	}
+
+	fmt.Println(res)
+
 	return LLMOffer{
 		Missions:        "Suck dicks, Make coffee",
 		ExpectedProfile: "10 years in backend development",

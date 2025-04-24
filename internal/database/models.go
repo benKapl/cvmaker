@@ -15,13 +15,13 @@ type Offer struct {
 	ID                      uuid.UUID
 	CreatedAt               time.Time
 	UpdatedAt               time.Time
-	Label                   string
+	Title                   string
 	Organization            string
 	OrganizationDescription sql.NullString
-	Missions                string
-	Stack                   sql.NullString
-	ExpectedProfile         string
-	Miscellaneous           sql.NullString
+	Missions                []string
+	Stack                   []string
+	ExpectedProfile         []string
+	Miscellaneous           []string
 	UserID                  uuid.UUID
 }
 
