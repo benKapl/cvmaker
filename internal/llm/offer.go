@@ -51,8 +51,7 @@ var (
 )
 
 // Call the LLM generation endpoint to parse a job offer into a specific format
-// Encode the response into JSON bytes and decode it into a strongly type LLMOffer
-// Return the LLMOffer and an error
+// Decodes the response into a strongly type LLMOffer and returns it
 func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
 
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
@@ -61,21 +60,15 @@ func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
 		return LLMOffer{}, fmt.Errorf("LLM generation failed: %w", err)
 	}
 
-	if generateResponse.Response == "" {
-		return LLMOffer{}, fmt.Errorf("LLM response map is empty")
+	formattedOffer := generateResponse.Response
+	if formattedOffer == "" {
+		return LLMOffer{}, fmt.Errorf("LLM Response is empty")
 	}
-
-	// Marshal response into JSON bytes to return a type strong LLMOffer
-	responseBytes, err := json.Marshal(generateResponse.Response)
-	if err != nil {
-		return LLMOffer{}, fmt.Errorf("failed to marshal LLM response map: %w", err)
-	}
-	fmt.Println(string(responseBytes))
 
 	var offer LLMOffer
-	err = json.Unmarshal(responseBytes, &offer)
+	err = json.Unmarshal([]byte(formattedOffer), &offer)
 	if err != nil {
-		return LLMOffer{}, fmt.Errorf("failed to unmarshal LLM response into LLMOffer: %w. JSON data: %s", err, string(responseBytes))
+		return LLMOffer{}, fmt.Errorf("failed to unmarshal LLM response into LLMOffer: %w. JSON data: %s", err, formattedOffer)
 	}
 
 	// Handle missing required values
