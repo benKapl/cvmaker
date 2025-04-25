@@ -50,7 +50,7 @@ func main() {
 	defer dbConn.Close()
 	dbQueries := database.New(dbConn)
 
-	llmClient := llm.NewClient(30 * time.Second) // 30 seconds of timeout to handle llm response time
+	llmClient := llm.NewClient(120 * time.Second) // 30 seconds of timeout to handle llm response time
 
 	apiCfg := apiConfig{
 		db:        dbQueries,

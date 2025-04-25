@@ -8,7 +8,7 @@ import (
 type LLMOffer struct {
 	Title                   string   `json:"title"`
 	Organization            string   `json:"organization"`
-	OrganizationDescription string   `json:"organization_description,omitempty"`
+	OrganizationDescription *string  `json:"organization_description,omitempty"`
 	Missions                []string `json:"missions"`
 	Stack                   []string `json:"stack,omitempty"`
 	ExpectedProfile         []string `json:"expected_profile"`
