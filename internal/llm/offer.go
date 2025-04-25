@@ -1,15 +1,18 @@
 package llm
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type LLMOffer struct {
-	Label                   string
-	Organization            string
-	OrganizationDescription string
-	Missions                string
-	Stack                   string
-	ExpectedProfile         string
-	Miscellaneous           string
+	Title                   string   `json:"title"`
+	Organization            string   `json:"organization"`
+	OrganizationDescription string   `json:"organization_description,omitempty"`
+	Missions                []string `json:"missions"`
+	Stack                   []string `json:"stack,omitempty"`
+	ExpectedProfile         []string `json:"expected_profile"`
+	Miscellaneous           []string `json:"miscellaneous,omitempty"`
 }
 
 var (
@@ -47,24 +50,47 @@ var (
 	offerPromptEnd   = "\n\"\"\"\n\nJSON Output:"
 )
 
-// Request the /api/generate endpoint with a job offer to parse
+// Call the LLM generation endpoint to parse a job offer into a specific format
+// Encode the response into JSON bytes and decode it into a strongly type LLMOffer
+// Return the LLMOffer and an error
 func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
-	// REVIEW STRUCT MODEL !!!
 
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
-	res, err := c.generate(prompt, offerFormat)
+	generateResponse, err := c.generate(prompt, offerFormat)
 	if err != nil {
-		return LLMOffer{}, err
+		return LLMOffer{}, fmt.Errorf("LLM generation failed: %w", err)
 	}
 
-	fmt.Println(res)
+	if generateResponse.Response == "" {
+		return LLMOffer{}, fmt.Errorf("LLM response map is empty")
+	}
 
-	return LLMOffer{
-		Missions:        "Suck dicks, Make coffee",
-		ExpectedProfile: "10 years in backend development",
-	}, nil
-}
+	// Marshal response into JSON bytes to return a type strong LLMOffer
+	responseBytes, err := json.Marshal(generateResponse.Response)
+	if err != nil {
+		return LLMOffer{}, fmt.Errorf("failed to marshal LLM response map: %w", err)
+	}
+	fmt.Println(string(responseBytes))
 
-func formatLLMOffer(input string) (output []string, err error) {
-	return []string{"one", "two"}, nil
+	var offer LLMOffer
+	err = json.Unmarshal(responseBytes, &offer)
+	if err != nil {
+		return LLMOffer{}, fmt.Errorf("failed to unmarshal LLM response into LLMOffer: %w. JSON data: %s", err, string(responseBytes))
+	}
+
+	// Handle missing required values
+	if offer.Title == "" {
+		offer.Title = "N/A"
+	}
+	if offer.Organization == "" {
+		offer.Organization = "N/A"
+	}
+	if offer.Missions == nil {
+		offer.Missions = []string{}
+	}
+	if offer.ExpectedProfile == nil {
+		offer.ExpectedProfile = []string{}
+	}
+
+	return offer, nil
 }
