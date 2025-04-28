@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -11,26 +12,30 @@ import (
 	"github.com/lib/pq"
 )
 
-type Educations struct {
-	Id          uuid.UUID `json:"id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Label       string    `json:"label"`
-	School      string    `json:"school"`
-	Description string    `json:"description"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	UserID      uuid.UUID `json:"user_id"`
+type Education struct {
+	Id          uuid.UUID    `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	Label       string       `json:"label"`
+	School      string       `json:"school"`
+	Description string       `json:"description"`
+	StartDate   time.Time    `json:"start_date"`
+	EndDate     sql.NullTime `json:"end_date"`
+	UserID      uuid.UUID    `json:"user_id"`
 }
 
 func (cfg *apiConfig) handlerRawEducationsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Label string `json:"label"`
+		Label       string    `json:"label"`
+		School      string    `json:"school"`
+		Description string    `json:"description"`
+		StartDate   time.Time `json:"start_date"`
+		EndDate     time.Time `json:"end_date:omitempty"`
 	}
 
 	type response struct {
-		Success bool
-		Hobby   Hobby
+		Success   bool
+		Education Education
 	}
 
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
@@ -48,31 +53,46 @@ func (cfg *apiConfig) handlerRawEducationsCreate(w http.ResponseWriter, r *http.
 		return
 	}
 
-	hobby, err := cfg.db.CreateRawHobby(r.Context(), database.CreateRawHobbyParams{
-		Label:  strings.ToLower(params.Label),
-		UserID: userID,
+	var endDate sql.NullTime
+	if params.EndDate.IsZero() {
+		endDate = sql.NullTime{Valid: false}
+	} else {
+		endDate = sql.NullTime{Time: params.EndDate, Valid: true}
+	}
+
+	education, err := cfg.db.CreateRawEducation(r.Context(), database.CreateRawEducationParams{
+		Label:       strings.ToLower(params.Label),
+		School:      strings.ToLower(params.School),
+		Description: strings.ToLower(params.Description),
+		StartDate:   params.StartDate,
+		EndDate:     endDate,
+		UserID:      userID,
 	})
 
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			if pqErr.Code == "23505" { // Duplicate Key error
-				respondWithError(w, http.StatusBadRequest, "User's raw hobby already exists", err)
+				respondWithError(w, http.StatusBadRequest, "User's raw education already exists", err)
 				return
 			}
 		}
-		respondWithError(w, http.StatusInternalServerError, "Could not create raw hobby", err)
+		respondWithError(w, http.StatusInternalServerError, "Could not create raw education", err)
 		return
 	}
 
 	respondWithJSON(w, http.StatusCreated, response{
 		Success: true,
-		Hobby: Hobby{
-			Id:        hobby.ID,
-			CreatedAt: hobby.CreatedAt,
-			UpdatedAt: hobby.UpdatedAt,
-			Label:     hobby.Label,
-			UserID:    hobby.UserID,
+		Education: Education{
+			Id:          education.ID,
+			CreatedAt:   education.CreatedAt,
+			UpdatedAt:   education.UpdatedAt,
+			Label:       education.Label,
+			School:      education.School,
+			Description: education.Description,
+			StartDate:   education.StartDate,
+			EndDate:     education.EndDate,
+			UserID:      education.UserID,
 		},
 	})
 }
