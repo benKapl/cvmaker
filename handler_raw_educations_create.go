@@ -30,7 +30,7 @@ func (cfg *apiConfig) handlerRawEducationsCreate(w http.ResponseWriter, r *http.
 		School      string    `json:"school"`
 		Description string    `json:"description"`
 		StartDate   time.Time `json:"start_date"`
-		EndDate     time.Time `json:"end_date:omitempty"`
+		EndDate     time.Time `json:"end_date"`
 	}
 
 	type response struct {
