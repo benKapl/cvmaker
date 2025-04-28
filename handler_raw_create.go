@@ -7,6 +7,7 @@ import (
 
 	"github.com/benKapl/cvmaker_api/internal/database"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type Hobby struct {
@@ -46,7 +47,15 @@ func (cfg *apiConfig) handlerRawHobbiesCreate(w http.ResponseWriter, r *http.Req
 		Label:  params.Label,
 		UserID: userID,
 	})
+
 	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			if pqErr.Code == "23505" { // Duplicate Key error
+				respondWithError(w, http.StatusBadRequest, "User's raw hobby already exists", err)
+				return
+			}
+		}
 		respondWithError(w, http.StatusInternalServerError, "Could not create raw hobby", err)
 		return
 	}
