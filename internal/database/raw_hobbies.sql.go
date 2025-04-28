@@ -7,21 +7,29 @@ package database
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createRawHobby = `-- name: CreateRawHobby :one
-INSERT INTO raw_hobbies(id, created_at, updated_at, label)
+INSERT INTO raw_hobbies(id, created_at, updated_at, label, user_id)
 VALUES (
     gen_random_uuid(),
     NOW(),
     NOW(),
-    $1
+    $1,
+    $2
 )
 RETURNING id, created_at, updated_at, label, user_id
 `
 
-func (q *Queries) CreateRawHobby(ctx context.Context, label string) (RawHobby, error) {
-	row := q.db.QueryRowContext(ctx, createRawHobby, label)
+type CreateRawHobbyParams struct {
+	Label  string
+	UserID uuid.UUID
+}
+
+func (q *Queries) CreateRawHobby(ctx context.Context, arg CreateRawHobbyParams) (RawHobby, error) {
+	row := q.db.QueryRowContext(ctx, createRawHobby, arg.Label, arg.UserID)
 	var i RawHobby
 	err := row.Scan(
 		&i.ID,
