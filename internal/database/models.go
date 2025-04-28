@@ -25,6 +25,14 @@ type Offer struct {
 	UserID                  uuid.UUID
 }
 
+type RawHobby struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Label     string
+	UserID    uuid.UUID
+}
+
 type RefreshToken struct {
 	Token     string
 	CreatedAt time.Time
