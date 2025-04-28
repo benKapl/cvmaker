@@ -76,8 +76,10 @@ func main() {
 	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
-	// Business routes
+	// User history
 	mux.Handle("POST /api/raw/hobbies", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawHobbiesCreate)))
+	mux.Handle("POST /api/raw/educations", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawEducationsCreate)))
+	// Offers management
 	mux.Handle("POST /api/offers", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerOffersCreate)))
 
 	globalMux := LoggingMiddleware(mux)

@@ -25,6 +25,18 @@ type Offer struct {
 	UserID                  uuid.UUID
 }
 
+type RawEducation struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Label       string
+	School      string
+	Description string
+	StartDate   time.Time
+	EndDate     sql.NullTime
+	UserID      uuid.UUID
+}
+
 type RawHobby struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
