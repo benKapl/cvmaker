@@ -4,7 +4,8 @@ CREATE TABLE raw_hobbies(
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     label TEXT NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    unique(label, user_id)
 );
 
 -- +goose Down

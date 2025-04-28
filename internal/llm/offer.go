@@ -16,25 +16,25 @@ type LLMOffer struct {
 }
 
 var (
-	offerFormat = map[string]interface{}{
+	offerFormat = map[string]any{
 		"type": "object",
-		"properties": map[string]interface{}{
+		"properties": map[string]any{
 			"title":                    map[string]string{"type": "string"},
 			"organization":             map[string]string{"type": "string"},
 			"organization_description": map[string]string{"type": "string"},
-			"missions": map[string]interface{}{
+			"missions": map[string]any{
 				"type":  "array",
 				"items": map[string]string{"type": "string"},
 			},
-			"stack": map[string]interface{}{
+			"stack": map[string]any{
 				"type":  "array",
 				"items": map[string]string{"type": "string"},
 			},
-			"expected_profile": map[string]interface{}{
+			"expected_profile": map[string]any{
 				"type":  "array",
 				"items": map[string]string{"type": "string"},
 			},
-			"miscellaneous": map[string]interface{}{
+			"miscellaneous": map[string]any{
 				"type":  "array",
 				"items": map[string]string{"type": "string"},
 			},
@@ -46,7 +46,7 @@ var (
 			"expected_profile",
 		},
 	}
-	offerPromptStart = "Extract the following information from the job offer provided below and return it as a JSON object:\n\n- title (required)\n- organization (required) - the name of the postee\n- organization_description\n- missions (required)\n- stack\n- expected_profile (required)\n- miscellaneous (all other relevant info)\n\nEnsure the output is a valid JSON object matching the specified structure. If a field is not found and is not required, omit it. Place any extra information not fitting the specific fields into the miscellaneous field.\n\nJob Offer:\n\"\"\"\n"
+	offerPromptStart = "Extract the following information from the job offer provided below and return it as a JSON object:\n\n- title (required)\n- organization (required) - the name of the postee\n- organization_description\n- missions (required)\n- stack\n- expected_profile (required)\n- miscellaneous\n\nEnsure the output is a valid JSON object matching the specified structure. Place any extra information not fitting the specific fields into the miscellaneous field, such information includes but are not limited to: office location, salary and advantages, corporate culture and so on. It's best to add too much than not enough, but do not invent.\n\nJob Offer:\n\"\"\"\n"
 	offerPromptEnd   = "\n\"\"\"\n\nJSON Output:"
 )
 
@@ -70,6 +70,8 @@ func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
 	if err != nil {
 		return LLMOffer{}, fmt.Errorf("failed to unmarshal LLM response into LLMOffer: %w. JSON data: %s", err, formattedOffer)
 	}
+
+	fmt.Println(offer.Miscellaneous)
 
 	// Handle missing required values
 	if offer.Title == "" {
