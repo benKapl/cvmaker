@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/auth"
@@ -43,7 +44,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	}
 
 	user, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
-		Email:    params.Email,
+		Email:    strings.ToLower(params.Email),
 		Password: hash,
 	})
 

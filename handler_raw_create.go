@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/database"
@@ -44,7 +45,7 @@ func (cfg *apiConfig) handlerRawHobbiesCreate(w http.ResponseWriter, r *http.Req
 	}
 
 	hobby, err := cfg.db.CreateRawHobby(r.Context(), database.CreateRawHobbyParams{
-		Label:  params.Label,
+		Label:  strings.ToLower(params.Label),
 		UserID: userID,
 	})
 
