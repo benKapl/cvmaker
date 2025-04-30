@@ -13,7 +13,7 @@ WITH inserted_raw_experience_stack as(
     SELECT 
         inserted_raw_experience_stack.*,
         raw_experiences.title AS experience_title,
-        raw_stacks.label as stack_label
+        raw_stacks.label AS stack_label
     FROM inserted_raw_experience_stack
-    INNER JOIN raw_experiences on raw_experiences.id = raw_experience_stacks.experience_id
-    INNER JOIN raw_stacks on raw_stacks.id = raw_experience_stacks.stack_id;
+    INNER JOIN raw_experiences ON raw_experiences.id = inserted_raw_experience_stack.experience_id
+    INNER JOIN raw_stacks ON raw_stacks.id = inserted_raw_experience_stack.stack_id;
