@@ -19,7 +19,7 @@ type Experience struct {
 	Title        string       `json:"title"`
 	Organization string       `json:"organization"`
 	Description  string       `json:"description"`
-	Stacks       []string     `json:"stack,omitempty"`
+	Stacks       []Stack      `json:"stack,omitempty"`
 	StartDate    time.Time    `json:"start_date"`
 	EndDate      sql.NullTime `json:"end_date"`
 	UserID       uuid.UUID    `json:"user_id"`
@@ -86,9 +86,59 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 	}
 
 	// Manage stack retrieval and creation in pivot table
-	// for stack in stacks:
-	//		get stack in db
-	// 		if not stack:
-	//			create stack
-	//      create expreience_stack
+	var stacks []Stack
+
+	if len(params.Stacks) > 0 {
+		for _, stack := range params.Stacks {
+			// Get stack in db
+			dbStack, err := cfg.db.GetRawStackByLabel(r.Context(), database.GetRawStackByLabelParams{
+				Label:  strings.ToLower(stack),
+				UserID: userID,
+			})
+			if err != sql.ErrNoRows && err != nil {
+				respondWithError(w, http.StatusInternalServerError, "Could not get raw stack but should have been able to", err)
+				return
+			}
+
+			// if stack does not exist, create it
+			if err == sql.ErrNoRows {
+				dbStack, err = cfg.db.CreateRawStack(r.Context(), database.CreateRawStackParams{
+					Label:  strings.ToLower(stack),
+					UserID: userID,
+				})
+				if err != nil {
+					respondWithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
+					return
+				}
+			}
+
+			// Link stack to experience
+			_, err = cfg.db.CreateRawExperienceStack(r.Context(), database.CreateRawExperienceStackParams{
+				ExperienceID: dbExp.ID,
+				StackID:      dbStack.ID,
+			})
+			if err != nil {
+				respondWithError(w, http.StatusInternalServerError, "Could not create raw experience_stack", err)
+				return
+			}
+
+			// If all went well, convert dbStack to stack and append it to stack list
+			stacks = append(stacks, dbRawStackToStack(dbStack))
+		}
+	}
+
+	respondWithJSON(w, http.StatusCreated, response{
+		Success: true,
+		Experience: Experience{
+			Id:          dbExp.ID,
+			CreatedAt:   dbExp.CreatedAt,
+			UpdatedAt:   dbExp.UpdatedAt,
+			Title:       dbExp.Title,
+			Description: dbExp.Description,
+			Stacks:      stacks,
+			StartDate:   dbExp.StartDate,
+			EndDate:     dbExp.EndDate,
+			UserID:      dbExp.UserID,
+		},
+	})
 }
