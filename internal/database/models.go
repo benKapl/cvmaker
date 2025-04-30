@@ -57,6 +57,14 @@ type RawHobby struct {
 	UserID    uuid.UUID
 }
 
+type RawStack struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Label     string
+	UserID    uuid.UUID
+}
+
 type RefreshToken struct {
 	Token     string
 	CreatedAt time.Time
