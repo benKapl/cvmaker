@@ -49,6 +49,14 @@ type RawExperience struct {
 	UserID       uuid.UUID
 }
 
+type RawExperienceStack struct {
+	ID           uuid.UUID
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	ExperienceID uuid.UUID
+	StackID      uuid.UUID
+}
+
 type RawHobby struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
