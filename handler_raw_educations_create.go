@@ -34,7 +34,7 @@ func (cfg *apiConfig) handlerRawEducationsCreate(w http.ResponseWriter, r *http.
 	}
 
 	type response struct {
-		Success   bool
+		Success   bool `json:"success"`
 		Education Education
 	}
 

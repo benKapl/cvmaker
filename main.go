@@ -79,6 +79,7 @@ func main() {
 	// User history
 	mux.Handle("POST /api/raw/hobbies", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawHobbiesCreate)))
 	mux.Handle("POST /api/raw/educations", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawEducationsCreate)))
+	mux.Handle("POST /api/raw/experiences", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawExperiencesCreate)))
 	// Offers management
 	mux.Handle("POST /api/offers", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerOffersCreate)))
 
