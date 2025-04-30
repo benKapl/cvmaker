@@ -1,4 +1,4 @@
--- name: CreateRawprojectStack :one
+-- name: CreateRawProjectStack :one
 WITH inserted_raw_project_stack as(
     INSERT INTO raw_project_stacks(id, created_at, updated_at, project_id, stack_id)
     VALUES (

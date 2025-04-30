@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const createRawprojectStack = `-- name: CreateRawprojectStack :one
+const createRawProjectStack = `-- name: CreateRawProjectStack :one
 WITH inserted_raw_project_stack as(
     INSERT INTO raw_project_stacks(id, created_at, updated_at, project_id, stack_id)
     VALUES (
@@ -33,12 +33,12 @@ WITH inserted_raw_project_stack as(
     INNER JOIN raw_stacks ON raw_stacks.id = inserted_raw_project_stack.stack_id
 `
 
-type CreateRawprojectStackParams struct {
+type CreateRawProjectStackParams struct {
 	ProjectID uuid.UUID
 	StackID   uuid.UUID
 }
 
-type CreateRawprojectStackRow struct {
+type CreateRawProjectStackRow struct {
 	ID           uuid.UUID
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -48,9 +48,9 @@ type CreateRawprojectStackRow struct {
 	StackLabel   string
 }
 
-func (q *Queries) CreateRawprojectStack(ctx context.Context, arg CreateRawprojectStackParams) (CreateRawprojectStackRow, error) {
-	row := q.db.QueryRowContext(ctx, createRawprojectStack, arg.ProjectID, arg.StackID)
-	var i CreateRawprojectStackRow
+func (q *Queries) CreateRawProjectStack(ctx context.Context, arg CreateRawProjectStackParams) (CreateRawProjectStackRow, error) {
+	row := q.db.QueryRowContext(ctx, createRawProjectStack, arg.ProjectID, arg.StackID)
+	var i CreateRawProjectStackRow
 	err := row.Scan(
 		&i.ID,
 		&i.CreatedAt,

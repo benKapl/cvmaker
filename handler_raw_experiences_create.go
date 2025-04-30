@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -56,7 +55,6 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 		respondWithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
-	fmt.Println(params.Stacks)
 
 	var endDate sql.NullTime
 	if params.EndDate.IsZero() {

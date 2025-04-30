@@ -81,6 +81,7 @@ func main() {
 	mux.Handle("POST /api/raw/stacks", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawStacksCreate)))
 	mux.Handle("POST /api/raw/educations", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawEducationsCreate)))
 	mux.Handle("POST /api/raw/experiences", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawExperiencesCreate)))
+	mux.Handle("POST /api/raw/projects", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerRawProjectsCreate)))
 	// Offers management
 	mux.Handle("POST /api/offers", apiCfg.AuthenticateMiddleware(http.HandlerFunc(apiCfg.handlerOffersCreate)))
 

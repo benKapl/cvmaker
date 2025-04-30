@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -13,33 +12,31 @@ import (
 	"github.com/lib/pq"
 )
 
-type Experience struct {
-	Id           uuid.UUID    `json:"id"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-	Title        string       `json:"title"`
-	Organization string       `json:"organization"`
-	Description  string       `json:"description"`
-	Stacks       []Stack      `json:"stacks,omitempty"`
-	StartDate    time.Time    `json:"start_date"`
-	EndDate      sql.NullTime `json:"end_date"`
-	UserID       uuid.UUID    `json:"user_id"`
+type Project struct {
+	Id          uuid.UUID    `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	Label       string       `json:"label"`
+	Description string       `json:"description"`
+	Stacks      []Stack      `json:"stacks,omitempty"`
+	StartDate   time.Time    `json:"start_date"`
+	EndDate     sql.NullTime `json:"end_date"`
+	UserID      uuid.UUID    `json:"user_id"`
 }
 
-func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Title        string    `json:"title"`
-		Organization string    `json:"organization"`
-		Description  string    `json:"description"`
-		Stacks       []string  `json:"stacks,omitempty"`
-		StartDate    time.Time `json:"start_date"`
-		EndDate      time.Time `json:"end_date"`
-		UserID       uuid.UUID `json:"user_id"`
+		Label       string    `json:"label"`
+		Description string    `json:"description"`
+		Stacks      []string  `json:"stacks,omitempty"`
+		StartDate   time.Time `json:"start_date"`
+		EndDate     time.Time `json:"end_date"`
+		UserID      uuid.UUID `json:"user_id"`
 	}
 
 	type response struct {
-		Success    bool `json:"success"`
-		Experience Experience
+		Success bool `json:"success"`
+		Project Project
 	}
 
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
@@ -56,7 +53,6 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 		respondWithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
-	fmt.Println(params.Stacks)
 
 	var endDate sql.NullTime
 	if params.EndDate.IsZero() {
@@ -66,24 +62,23 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 	}
 
 	// Create dbExp in database
-	dbExp, err := cfg.db.CreateRawExperience(r.Context(), database.CreateRawExperienceParams{
-		Title:        strings.ToLower(params.Title),
-		Organization: strings.ToLower(params.Organization),
-		Description:  strings.ToLower(params.Description),
-		StartDate:    params.StartDate,
-		EndDate:      endDate,
-		UserID:       userID,
+	dbProject, err := cfg.db.CreateRawProject(r.Context(), database.CreateRawProjectParams{
+		Label:       strings.ToLower(params.Label),
+		Description: strings.ToLower(params.Description),
+		StartDate:   params.StartDate,
+		EndDate:     endDate,
+		UserID:      userID,
 	})
 
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			if pqErr.Code == "23505" { // Duplicate Key error
-				respondWithError(w, http.StatusBadRequest, "User's raw experience already exists", err)
+				respondWithError(w, http.StatusBadRequest, "User's raw project already exists", err)
 				return
 			}
 		}
-		respondWithError(w, http.StatusInternalServerError, "Could not create raw experience", err)
+		respondWithError(w, http.StatusInternalServerError, "Could not create raw project", err)
 		return
 	}
 
@@ -114,10 +109,10 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 				}
 			}
 
-			// Link stack to experience
-			_, err = cfg.db.CreateRawExperienceStack(r.Context(), database.CreateRawExperienceStackParams{
-				ExperienceID: dbExp.ID,
-				StackID:      dbStack.ID,
+			// Link stack to project
+			_, err = cfg.db.CreateRawProjectStack(r.Context(), database.CreateRawProjectStackParams{
+				ProjectID: dbProject.ID,
+				StackID:   dbStack.ID,
 			})
 			if err != nil {
 				respondWithError(w, http.StatusInternalServerError, "Could not create raw experience_stack", err)
@@ -131,17 +126,16 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 
 	respondWithJSON(w, http.StatusCreated, response{
 		Success: true,
-		Experience: Experience{
-			Id:           dbExp.ID,
-			CreatedAt:    dbExp.CreatedAt,
-			UpdatedAt:    dbExp.UpdatedAt,
-			Title:        dbExp.Title,
-			Organization: dbExp.Organization,
-			Description:  dbExp.Description,
-			Stacks:       stacks,
-			StartDate:    dbExp.StartDate,
-			EndDate:      dbExp.EndDate,
-			UserID:       dbExp.UserID,
+		Project: Project{
+			Id:          dbProject.ID,
+			CreatedAt:   dbProject.CreatedAt,
+			UpdatedAt:   dbProject.UpdatedAt,
+			Label:       dbProject.Label,
+			Description: dbProject.Description,
+			Stacks:      stacks,
+			StartDate:   dbProject.StartDate,
+			EndDate:     dbProject.EndDate,
+			UserID:      dbProject.UserID,
 		},
 	})
 }
