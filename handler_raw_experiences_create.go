@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -19,7 +20,7 @@ type Experience struct {
 	Title        string       `json:"title"`
 	Organization string       `json:"organization"`
 	Description  string       `json:"description"`
-	Stacks       []Stack      `json:"stack,omitempty"`
+	Stacks       []Stack      `json:"stacks,omitempty"`
 	StartDate    time.Time    `json:"start_date"`
 	EndDate      sql.NullTime `json:"end_date"`
 	UserID       uuid.UUID    `json:"user_id"`
@@ -30,7 +31,7 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 		Title        string    `json:"title"`
 		Organization string    `json:"organization"`
 		Description  string    `json:"description"`
-		Stacks       []string  `json:"stack,omitempty"`
+		Stacks       []string  `json:"stacks,omitempty"`
 		StartDate    time.Time `json:"start_date"`
 		EndDate      time.Time `json:"end_date"`
 		UserID       uuid.UUID `json:"user_id"`
@@ -55,6 +56,7 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 		respondWithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
+	fmt.Println(params.Stacks)
 
 	var endDate sql.NullTime
 	if params.EndDate.IsZero() {
@@ -130,15 +132,16 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 	respondWithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Experience: Experience{
-			Id:          dbExp.ID,
-			CreatedAt:   dbExp.CreatedAt,
-			UpdatedAt:   dbExp.UpdatedAt,
-			Title:       dbExp.Title,
-			Description: dbExp.Description,
-			Stacks:      stacks,
-			StartDate:   dbExp.StartDate,
-			EndDate:     dbExp.EndDate,
-			UserID:      dbExp.UserID,
+			Id:           dbExp.ID,
+			CreatedAt:    dbExp.CreatedAt,
+			UpdatedAt:    dbExp.UpdatedAt,
+			Title:        dbExp.Title,
+			Organization: dbExp.Organization,
+			Description:  dbExp.Description,
+			Stacks:       stacks,
+			StartDate:    dbExp.StartDate,
+			EndDate:      dbExp.EndDate,
+			UserID:       dbExp.UserID,
 		},
 	})
 }
