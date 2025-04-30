@@ -65,6 +65,25 @@ type RawHobby struct {
 	UserID    uuid.UUID
 }
 
+type RawProject struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Label       string
+	Description string
+	StartDate   time.Time
+	EndDate     sql.NullTime
+	UserID      uuid.UUID
+}
+
+type RawProjectStack struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	ProjectID uuid.UUID
+	StackID   uuid.UUID
+}
+
 type RawStack struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
