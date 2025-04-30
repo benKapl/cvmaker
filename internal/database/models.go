@@ -37,6 +37,18 @@ type RawEducation struct {
 	UserID      uuid.UUID
 }
 
+type RawExperience struct {
+	ID           uuid.UUID
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Title        string
+	Organization string
+	Description  string
+	StartDate    time.Time
+	EndDate      sql.NullTime
+	UserID       uuid.UUID
+}
+
 type RawHobby struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
