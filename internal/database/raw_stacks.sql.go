@@ -40,3 +40,26 @@ func (q *Queries) CreateRawStack(ctx context.Context, arg CreateRawStackParams) 
 	)
 	return i, err
 }
+
+const getRawStackByLabel = `-- name: GetRawStackByLabel :one
+SELECT id, created_at, updated_at, label, user_id FROM raw_stacks
+WHERE label = $1 AND user_id = $2
+`
+
+type GetRawStackByLabelParams struct {
+	Label  string
+	UserID uuid.UUID
+}
+
+func (q *Queries) GetRawStackByLabel(ctx context.Context, arg GetRawStackByLabelParams) (RawStack, error) {
+	row := q.db.QueryRowContext(ctx, getRawStackByLabel, arg.Label, arg.UserID)
+	var i RawStack
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Label,
+		&i.UserID,
+	)
+	return i, err
+}

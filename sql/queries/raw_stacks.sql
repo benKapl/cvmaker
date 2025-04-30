@@ -8,3 +8,7 @@ VALUES (
     $2
 )
 RETURNING *;
+
+-- name: GetRawStackByLabel :one
+SELECT * FROM raw_stacks
+WHERE label = $1 AND user_id = $2;

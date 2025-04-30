@@ -60,7 +60,7 @@ func (cfg *apiConfig) handlerRawEducationsCreate(w http.ResponseWriter, r *http.
 		endDate = sql.NullTime{Time: params.EndDate, Valid: true}
 	}
 
-	education, err := cfg.db.CreateRawEducation(r.Context(), database.CreateRawEducationParams{
+	dbEducation, err := cfg.db.CreateRawEducation(r.Context(), database.CreateRawEducationParams{
 		Label:       strings.ToLower(params.Label),
 		School:      strings.ToLower(params.School),
 		Description: strings.ToLower(params.Description),
@@ -84,15 +84,15 @@ func (cfg *apiConfig) handlerRawEducationsCreate(w http.ResponseWriter, r *http.
 	respondWithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Education: Education{
-			Id:          education.ID,
-			CreatedAt:   education.CreatedAt,
-			UpdatedAt:   education.UpdatedAt,
-			Label:       education.Label,
-			School:      education.School,
-			Description: education.Description,
-			StartDate:   education.StartDate,
-			EndDate:     education.EndDate,
-			UserID:      education.UserID,
+			Id:          dbEducation.ID,
+			CreatedAt:   dbEducation.CreatedAt,
+			UpdatedAt:   dbEducation.UpdatedAt,
+			Label:       dbEducation.Label,
+			School:      dbEducation.School,
+			Description: dbEducation.Description,
+			StartDate:   dbEducation.StartDate,
+			EndDate:     dbEducation.EndDate,
+			UserID:      dbEducation.UserID,
 		},
 	})
 }
