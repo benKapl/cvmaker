@@ -25,7 +25,7 @@ func (cfg *apiConfig) handlerRawHobbiesCreate(w http.ResponseWriter, r *http.Req
 	}
 
 	type response struct {
-		Success bool
+		Success bool `json:"success"`
 		Hobby   Hobby
 	}
 
