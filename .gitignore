@@ -23,3 +23,11 @@ go.work.sum
 
 # env file
 .env
+
+# Node files
+.DS_Store
+/node_modules/
+
+# React Router
+/.react-router/
+/build/
