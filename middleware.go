@@ -62,18 +62,15 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now() // Start timer
 
-		// Create our recorder instance
 		recorder := newResponseRecorder(w)
 
-		// Pass the recorder to the next handler.
 		// The recorder satisfies the http.ResponseWriter interface.
 		next.ServeHTTP(recorder, r)
 
-		// Calculate duration after the handler finishes
+		// Calculate duration AFTER the handler finishes
 		duration := time.Since(startTime)
 
 		// Log combined information including the recorded status code
-		// This is more idiomatic - one log line per request with key info.
 		log.Printf(
 			"Request: %s %s duration=%s status=%d bytes=%d",
 			r.Method,
