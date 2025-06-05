@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"log"
-
 	"github.com/benKapl/cvmaker_api/internal/database"
 	"github.com/benKapl/cvmaker_api/internal/llm"
 )
@@ -14,7 +12,7 @@ type API struct {
 	Platform  string
 }
 
-func NewAPI(db *database.Queries, llmClient llm.Client, jwtSecret, platform string, logger *log.Logger) *API {
+func NewAPI(db *database.Queries, llmClient llm.Client, jwtSecret, platform string) *API {
 	return &API{
 		DB:        db,
 		LLMClient: llmClient,
