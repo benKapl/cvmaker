@@ -25,8 +25,8 @@ module.exports = {
 			1, // Error level
 			'always',
 			[
-				'backend',      // Changes related to the Go backend
-				'frontend',     // Changes related to the React/TypeScript frontend
+				'api',      // Changes related to the Go backend
+				'web',     // Changes related to the React/TypeScript frontend
 				'db',           // Database schema or migration changes
 				'ci',           // CI/CD configuration
 				'docs',         // Project documentation (README, CONTRIBUTING, Notion links)
