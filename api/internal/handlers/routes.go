@@ -8,6 +8,8 @@ import (
 func (a *API) RegisterRoutes(mux *http.ServeMux) {
 
 	// Public routes
+	mux.HandleFunc("GET /api/health", handlerCheckHealth)
+
 	mux.HandleFunc("POST /api/reset", a.handlerReset)
 	mux.HandleFunc("POST /api/users", a.handlerUsersCreate)
 	mux.HandleFunc("POST /api/login", a.handlerLogin)
