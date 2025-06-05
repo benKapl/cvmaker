@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/database"
+	"github.com/benKapl/cvmaker_api/internal/respond"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -25,7 +26,7 @@ type Experience struct {
 	UserID       uuid.UUID    `json:"user_id"`
 }
 
-func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http.Request) {
+func (a *API) handlerRawExperiencesCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Title        string    `json:"title"`
 		Organization string    `json:"organization"`
@@ -43,7 +44,7 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
 	if !ok {
-		respondWithError(w, http.StatusInternalServerError, "Could not get userID, from Context", nil)
+		respond.WithError(w, http.StatusInternalServerError, "Could not get userID, from Context", nil)
 		return
 	}
 
@@ -52,7 +53,7 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
+		respond.WithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
 
@@ -64,7 +65,7 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 	}
 
 	// Create dbExp in database
-	dbExp, err := cfg.db.CreateRawExperience(r.Context(), database.CreateRawExperienceParams{
+	dbExp, err := a.DB.CreateRawExperience(r.Context(), database.CreateRawExperienceParams{
 		Title:        strings.ToLower(params.Title),
 		Organization: strings.ToLower(params.Organization),
 		Description:  strings.ToLower(params.Description),
@@ -77,11 +78,11 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			if pqErr.Code == "23505" { // Duplicate Key error
-				respondWithError(w, http.StatusBadRequest, "User's raw experience already exists", err)
+				respond.WithError(w, http.StatusBadRequest, "User's raw experience already exists", err)
 				return
 			}
 		}
-		respondWithError(w, http.StatusInternalServerError, "Could not create raw experience", err)
+		respond.WithError(w, http.StatusInternalServerError, "Could not create raw experience", err)
 		return
 	}
 
@@ -91,34 +92,34 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 	if len(params.Stacks) > 0 {
 		for _, stack := range params.Stacks {
 			// Get stack in db
-			dbStack, err := cfg.db.GetRawStackByLabel(r.Context(), database.GetRawStackByLabelParams{
+			dbStack, err := a.DB.GetRawStackByLabel(r.Context(), database.GetRawStackByLabelParams{
 				Label:  strings.ToLower(stack),
 				UserID: userID,
 			})
 			if err != sql.ErrNoRows && err != nil {
-				respondWithError(w, http.StatusInternalServerError, "Could not get raw stack but should have been able to", err)
+				respond.WithError(w, http.StatusInternalServerError, "Could not get raw stack but should have been able to", err)
 				return
 			}
 
 			// if stack does not exist, create it
 			if err == sql.ErrNoRows {
-				dbStack, err = cfg.db.CreateRawStack(r.Context(), database.CreateRawStackParams{
+				dbStack, err = a.DB.CreateRawStack(r.Context(), database.CreateRawStackParams{
 					Label:  strings.ToLower(stack),
 					UserID: userID,
 				})
 				if err != nil {
-					respondWithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
+					respond.WithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
 					return
 				}
 			}
 
 			// Link stack to experience
-			_, err = cfg.db.CreateRawExperienceStack(r.Context(), database.CreateRawExperienceStackParams{
+			_, err = a.DB.CreateRawExperienceStack(r.Context(), database.CreateRawExperienceStackParams{
 				ExperienceID: dbExp.ID,
 				StackID:      dbStack.ID,
 			})
 			if err != nil {
-				respondWithError(w, http.StatusInternalServerError, "Could not create raw experience_stack", err)
+				respond.WithError(w, http.StatusInternalServerError, "Could not create raw experience_stack", err)
 				return
 			}
 
@@ -127,7 +128,7 @@ func (cfg *apiConfig) handlerRawExperiencesCreate(w http.ResponseWriter, r *http
 		}
 	}
 
-	respondWithJSON(w, http.StatusCreated, response{
+	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Experience: Experience{
 			Id:           dbExp.ID,
