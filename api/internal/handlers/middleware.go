@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/auth"
+	"github.com/benKapl/cvmaker_api/internal/respond"
 )
 
 type responseRecorder struct {
@@ -38,17 +39,17 @@ func (rr *responseRecorder) WriteHeader(statusCode int) {
 	rr.ResponseWriter.WriteHeader(statusCode)
 }
 
-func (cfg *apiConfig) AuthenticateMiddleware(next http.Handler) http.Handler {
+func (a *API) AuthenticateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := auth.GetBearerToken(r.Header)
 		if err != nil {
-			respondWithError(w, http.StatusUnauthorized, "Couldn't find JWT", err)
+			respond.WithError(w, http.StatusUnauthorized, "Couldn't find JWT", err)
 			return
 		}
 
-		userID, err := auth.ValidateJWT(token, cfg.JWTSecret)
+		userID, err := auth.ValidateJWT(token, a.JWTSecret)
 		if err != nil {
-			respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
+			respond.WithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 			return
 		}
 

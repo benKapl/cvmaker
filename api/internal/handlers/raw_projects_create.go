@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/database"
+	"github.com/benKapl/cvmaker_api/internal/respond"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -24,7 +25,7 @@ type Project struct {
 	UserID      uuid.UUID    `json:"user_id"`
 }
 
-func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Request) {
+func (a *API) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Label       string    `json:"label"`
 		Description string    `json:"description"`
@@ -41,7 +42,7 @@ func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Re
 
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
 	if !ok {
-		respondWithError(w, http.StatusInternalServerError, "Could not get userID, from Context", nil)
+		respond.WithError(w, http.StatusInternalServerError, "Could not get userID, from Context", nil)
 		return
 	}
 
@@ -50,7 +51,7 @@ func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Re
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
+		respond.WithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
 
@@ -62,7 +63,7 @@ func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Re
 	}
 
 	// Create dbExp in database
-	dbProject, err := cfg.db.CreateRawProject(r.Context(), database.CreateRawProjectParams{
+	dbProject, err := a.DB.CreateRawProject(r.Context(), database.CreateRawProjectParams{
 		Label:       strings.ToLower(params.Label),
 		Description: strings.ToLower(params.Description),
 		StartDate:   params.StartDate,
@@ -74,11 +75,11 @@ func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Re
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			if pqErr.Code == "23505" { // Duplicate Key error
-				respondWithError(w, http.StatusBadRequest, "User's raw project already exists", err)
+				respond.WithError(w, http.StatusBadRequest, "User's raw project already exists", err)
 				return
 			}
 		}
-		respondWithError(w, http.StatusInternalServerError, "Could not create raw project", err)
+		respond.WithError(w, http.StatusInternalServerError, "Could not create raw project", err)
 		return
 	}
 
@@ -88,34 +89,34 @@ func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Re
 	if len(params.Stacks) > 0 {
 		for _, stack := range params.Stacks {
 			// Get stack in db
-			dbStack, err := cfg.db.GetRawStackByLabel(r.Context(), database.GetRawStackByLabelParams{
+			dbStack, err := a.DB.GetRawStackByLabel(r.Context(), database.GetRawStackByLabelParams{
 				Label:  strings.ToLower(stack),
 				UserID: userID,
 			})
 			if err != sql.ErrNoRows && err != nil {
-				respondWithError(w, http.StatusInternalServerError, "Could not get raw stack but should have been able to", err)
+				respond.WithError(w, http.StatusInternalServerError, "Could not get raw stack but should have been able to", err)
 				return
 			}
 
 			// if stack does not exist, create it
 			if err == sql.ErrNoRows {
-				dbStack, err = cfg.db.CreateRawStack(r.Context(), database.CreateRawStackParams{
+				dbStack, err = a.DB.CreateRawStack(r.Context(), database.CreateRawStackParams{
 					Label:  strings.ToLower(stack),
 					UserID: userID,
 				})
 				if err != nil {
-					respondWithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
+					respond.WithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
 					return
 				}
 			}
 
 			// Link stack to project
-			_, err = cfg.db.CreateRawProjectStack(r.Context(), database.CreateRawProjectStackParams{
+			_, err = a.DB.CreateRawProjectStack(r.Context(), database.CreateRawProjectStackParams{
 				ProjectID: dbProject.ID,
 				StackID:   dbStack.ID,
 			})
 			if err != nil {
-				respondWithError(w, http.StatusInternalServerError, "Could not create raw experience_stack", err)
+				respond.WithError(w, http.StatusInternalServerError, "Could not create raw experience_stack", err)
 				return
 			}
 
@@ -124,7 +125,7 @@ func (cfg *apiConfig) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	respondWithJSON(w, http.StatusCreated, response{
+	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Project: Project{
 			Id:          dbProject.ID,

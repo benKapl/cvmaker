@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/benKapl/cvmaker_api/internal/auth"
 	"github.com/benKapl/cvmaker_api/internal/database"
+	"github.com/benKapl/cvmaker_api/internal/respond"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -19,7 +20,7 @@ type User struct {
 	Email     string    `json:"email"`
 }
 
-func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
+func (a *API) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -33,17 +34,17 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return
 	}
 
 	hash, err := auth.HashPassword(params.Password)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't hash password", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't hash password", err)
 		return
 	}
 
-	user, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
+	user, err := a.DB.CreateUser(r.Context(), database.CreateUserParams{
 		Email:    strings.ToLower(params.Email),
 		Password: hash,
 	})
@@ -51,15 +52,15 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" {
-				respondWithError(w, http.StatusBadRequest, "User already exists", err)
+				respond.WithError(w, http.StatusBadRequest, "User already exists", err)
 				return
 			}
 		}
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create user", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't create user", err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, response{
+	respond.WithJSON(w, http.StatusCreated, response{
 		User: User{
 			ID:        user.ID,
 			CreatedAt: user.CreatedAt,
