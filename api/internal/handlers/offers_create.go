@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/database"
+	"github.com/benKapl/cvmaker_api/internal/respond"
 	"github.com/google/uuid"
 )
 
@@ -24,7 +25,7 @@ type Offer struct {
 	UserID                  uuid.UUID `json:"user_id"`
 }
 
-func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
+func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -36,7 +37,7 @@ func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request
 
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
 	if !ok {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't get userID from context", nil)
+		respond.WithError(w, http.StatusUnauthorized, "Couldn't get userID from context", nil)
 		return
 	}
 
@@ -44,14 +45,14 @@ func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request
 	var params parameters
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return
 	}
 
 	// Call the LLM to parse the offer
-	llmOffer, err := cfg.llmClient.ParseOffer(params.Body)
+	llmOffer, err := a.LLMClient.ParseOffer(params.Body)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't parse offer", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't parse offer", err)
 		return
 	}
 
@@ -72,15 +73,15 @@ func (cfg *apiConfig) handlerOffersCreate(w http.ResponseWriter, r *http.Request
 	}
 
 	// Create offer in database
-	dbOffer, err := cfg.db.CreateOffer(r.Context(), dbParams)
+	dbOffer, err := a.DB.CreateOffer(r.Context(), dbParams)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create offer", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't create offer", err)
 		return
 	}
 
 	offer := dbOfferToOffer(dbOffer)
 
-	respondWithJSON(w, http.StatusCreated, response{
+	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Offer:   offer,
 	})
