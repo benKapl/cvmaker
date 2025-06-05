@@ -4,12 +4,10 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"os"
-	"time"
 
+	"github.com/benKapl/cvmaker_api/internal/config"
 	"github.com/benKapl/cvmaker_api/internal/database"
 	"github.com/benKapl/cvmaker_api/internal/llm"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -22,35 +20,28 @@ type apiConfig struct {
 }
 
 func main() {
-	err := godotenv.Load()
+	// Load Configuration
+	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		log.Fatal("DB_URL must be set")
-	}
-	platform := os.Getenv("PLATFORM")
-	if platform == "" {
-		log.Fatal("PLATFORM must be set")
-	}
-	JWTSecret := os.Getenv("JWT_SECRET")
-	if JWTSecret == "" {
-		log.Fatal("JWTSecret must be set")
-	}
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("port must be set")
+		log.Fatal("Error loading configuration: %v", err)
 	}
 
-	dbConn, err := sql.Open("postgres", dbURL)
+	// Initialize Dependencies
+	dbConn, err := sql.Open("postgres", cfg.DBURL)
 	if err != nil {
-		log.Fatal("Error connecting to database")
+		log.Fatal("Error connecting to database: %v", err)
 	}
-	defer dbConn.Close()
+	defer dbConn.Close() // Ensure connection is closed on exit
+
+	if err := dbConn.Ping(); err != nil {
+		log.Fatal("Error pinging database: %v", err)
+	} else {
+		log.Println("Database connection verified")
+	}
+
 	dbQueries := database.New(dbConn)
 
-	llmClient := llm.NewClient(120 * time.Second) // significant timeout to handle llm response time
+	llmClient := llm.NewClient(cfg.LLMTimeout) // significant timeout to handle llm response time
 
 	apiCfg := apiConfig{
 		db:        dbQueries,
