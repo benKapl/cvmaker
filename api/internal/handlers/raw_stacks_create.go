@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/database"
+	"github.com/benKapl/cvmaker_api/internal/respond"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -19,7 +20,7 @@ type Stack struct {
 	UserID    uuid.UUID `json:"user_id"`
 }
 
-func (cfg *apiConfig) handlerRawStacksCreate(w http.ResponseWriter, r *http.Request) {
+func (a *API) handlerRawStacksCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Label string `json:"label"`
 	}
@@ -31,7 +32,7 @@ func (cfg *apiConfig) handlerRawStacksCreate(w http.ResponseWriter, r *http.Requ
 
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
 	if !ok {
-		respondWithError(w, http.StatusInternalServerError, "Could not get userID, from Context", nil)
+		respond.WithError(w, http.StatusInternalServerError, "Could not get userID, from Context", nil)
 		return
 	}
 
@@ -40,11 +41,11 @@ func (cfg *apiConfig) handlerRawStacksCreate(w http.ResponseWriter, r *http.Requ
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
+		respond.WithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
 
-	dbStack, err := cfg.db.CreateRawStack(r.Context(), database.CreateRawStackParams{
+	dbStack, err := a.DB.CreateRawStack(r.Context(), database.CreateRawStackParams{
 		Label:  strings.ToLower(params.Label),
 		UserID: userID,
 	})
@@ -53,15 +54,15 @@ func (cfg *apiConfig) handlerRawStacksCreate(w http.ResponseWriter, r *http.Requ
 		pqErr, ok := err.(*pq.Error)
 		if ok {
 			if pqErr.Code == "23505" { // Duplicate Key error
-				respondWithError(w, http.StatusBadRequest, "User's raw stack already exists", err)
+				respond.WithError(w, http.StatusBadRequest, "User's raw stack already exists", err)
 				return
 			}
 		}
-		respondWithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
+		respond.WithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, response{
+	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Stack:   dbRawStackToStack(dbStack),
 	})

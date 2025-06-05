@@ -5,50 +5,51 @@ import (
 	"time"
 
 	"github.com/benKapl/cvmaker_api/internal/auth"
+	"github.com/benKapl/cvmaker_api/internal/respond"
 )
 
-func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
+func (a *API) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 	type response struct {
 		Token string `json:"token"`
 	}
 
 	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't find token", err)
+		respond.WithError(w, http.StatusUnauthorized, "Couldn't find token", err)
 		return
 	}
 
-	user, err := cfg.db.GetUserFromRefreshToken(r.Context(), refreshToken)
+	user, err := a.DB.GetUserFromRefreshToken(r.Context(), refreshToken)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't get user for refresh token", err)
+		respond.WithError(w, http.StatusUnauthorized, "Couldn't get user for refresh token", err)
 		return
 	}
 
 	accessToken, err := auth.MakeJWT(
 		user.ID,
-		cfg.JWTSecret,
+		a.JWTSecret,
 		time.Hour,
 	)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
+		respond.WithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, response{
+	respond.WithJSON(w, http.StatusOK, response{
 		Token: accessToken,
 	})
 }
 
-func (cfg *apiConfig) handlerRevoke(w http.ResponseWriter, r *http.Request) {
+func (a *API) handlerRevoke(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't find token", err)
+		respond.WithError(w, http.StatusUnauthorized, "Couldn't find token", err)
 		return
 	}
 
-	_, err = cfg.db.RevokeRefreshToken(r.Context(), refreshToken)
+	_, err = a.DB.RevokeRefreshToken(r.Context(), refreshToken)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't revoke session", err)
+		respond.WithError(w, http.StatusUnauthorized, "Couldn't revoke session", err)
 		return
 	}
 

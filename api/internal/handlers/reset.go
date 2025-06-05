@@ -1,17 +1,21 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
 
-func (cfg *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
-	if cfg.platform != "dev" {
+	"github.com/benKapl/cvmaker_api/internal/respond"
+)
+
+func (a *API) handlerReset(w http.ResponseWriter, r *http.Request) {
+	if a.Platform != "dev" {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte("Reset is only allowed in dev environment"))
 		return
 	}
 
-	err := cfg.db.DeleteUsers(r.Context())
+	err := a.DB.DeleteUsers(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't reset database", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't reset database", err)
 		return
 	}
 
