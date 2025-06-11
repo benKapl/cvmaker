@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/benKapl/cvmaker_api/internal/auth"
-	"github.com/benKapl/cvmaker_api/internal/database"
-	"github.com/benKapl/cvmaker_api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/auth"
+	"github.com/benKapl/cvmaker-api/internal/database"
+	"github.com/benKapl/cvmaker-api/internal/respond"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )

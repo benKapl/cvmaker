@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/benKapl/cvmaker_api/internal/config"
-	"github.com/benKapl/cvmaker_api/internal/database"
-	"github.com/benKapl/cvmaker_api/internal/handlers"
-	"github.com/benKapl/cvmaker_api/internal/llm"
+	"github.com/benKapl/cvmaker-api/internal/config"
+	"github.com/benKapl/cvmaker-api/internal/database"
+	"github.com/benKapl/cvmaker-api/internal/handlers"
+	"github.com/benKapl/cvmaker-api/internal/llm"
 	_ "github.com/lib/pq"
 )
 

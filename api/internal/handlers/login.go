@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/benKapl/cvmaker_api/internal/auth"
-	"github.com/benKapl/cvmaker_api/internal/database"
-	"github.com/benKapl/cvmaker_api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/auth"
+	"github.com/benKapl/cvmaker-api/internal/database"
+	"github.com/benKapl/cvmaker-api/internal/respond"
 )
 
 func (a *API) handlerLogin(w http.ResponseWriter, r *http.Request) {

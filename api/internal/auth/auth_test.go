@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benKapl/cvmaker_api/internal/auth"
+	"github.com/benKapl/cvmaker-api/internal/auth"
 	"github.com/google/uuid"
 )
 
