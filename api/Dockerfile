@@ -1,7 +1,23 @@
-FROM --platform=linux/amd64 debian:stable-slim
+# Build the builder
+FROM golang:1.23-alpine AS builder
 
-RUN apt-get update && apt-get install -y ca-certificates
+WORKDIR /app
 
-ADD cvmaker /usr/bin/notely
+COPY go.mod go.sum ./
 
-CMD ["cvmaker"]
+RUN go mod download
+
+COPY . .
+
+RUN GO_ENABLED=0 GOOS=linux go build -o /cvmaker-api .
+
+# Build the runtime environment
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /cvmaker-api .
+
+EXPOSE 8080
+
+CMD ["/app/cvmaker-api"]
