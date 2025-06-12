@@ -1,7 +1,7 @@
 name: cd-api
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
       - "api/**" # Trigger only if there are changes in the api directory
@@ -15,7 +15,7 @@ jobs:
     name: Deploy API to Scaleway
     runs-on: ubuntu-latest
 
-    Environment:
+    environment:
       name: Production
 
     steps:
