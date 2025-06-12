@@ -9,4 +9,6 @@ declare module "react-router" {
 type Params = {
   "/": {};
   "/register": {};
+  "/questionnaire/experience": {};
+  "/questionnaire/personal-data": {};
 };
