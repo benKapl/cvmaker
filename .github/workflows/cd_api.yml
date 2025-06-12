@@ -1,0 +1,58 @@
+name: cd-api
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**" # Trigger only if there are changes in the api directory
+
+defaults:
+  run:
+    working-directory: ./api # All commands will run from the 'api' directory by default
+
+jobs:
+  deploy:
+    name: Deploy API to Scaleway
+    runs-on: ubuntu-latest
+
+    Environment:
+      name: Production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Scaleway Container Registry
+        uses: docker/login-action@v3
+        with: 
+          registry: rg.fr-par.scw.cloud
+          username: ${{ secrets.SCW_ACCESS_KEY }}
+          password: ${{ secrets.SCW_SECRET_KEY }}
+          
+      - name: Build and Push Docker image
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true 
+          tags: |
+            rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:latest
+            rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
+          cache-from: type=gha # Use GitHub Actions cache for faster builds
+          cache-to: type=gha,mode=max
+
+      - name: Install Scaleway CLI
+        run: |
+          curl -fsSL https://www.scaleway.com/en/cli/install/ | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
+
+      - name: Configure Scaleway CLI
+        run: |
+          scw init -p newprofile access-key=${{ secrets.SCW_ACCESS_KEY }} secret-key=${{ secrets.SCW_SECRET_KEY }} organization-id=${{ secrets.SCW_ORGANIZATION_ID }} project-id=${{ secrets.SCW_PROJECT_ID }}
+
+      - name: Deploy new image to Scaleway Container Run
+        run: |
+          scw container deploy ${{ secrets.SCW_CONTAINER_RUN_SERVICE_ID }} image=rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
