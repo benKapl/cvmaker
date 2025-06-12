@@ -51,7 +51,7 @@ jobs:
 
       - name: Configure Scaleway CLI
         run: |
-          scw init --access-key=${{ secrets.SCW_ACCESS_KEY }} --secret-key=${{ secrets.SCW_SECRET_KEY }} 
+          scw init -p newprofile access-key=${{ secrets.SCW_ACCESS_KEY }} secret-key=${{ secrets.SCW_SECRET_KEY }} organization-id=${{ secrets.SCW_ORGANIZATION_ID }} project-id=${{ secrets.SCW_PROJECT_ID }}
 
       - name: Deploy new image to Scaleway Container Run
         run: |
