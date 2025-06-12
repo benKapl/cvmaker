@@ -84,7 +84,7 @@ func MakeRefreshToken() (string, error) {
 	key := make([]byte, 32)
 	_, err := rand.Read(key)
 	if err != nil {
-		return "", errors.New("Couldnt generate 32 bytes key")
+		return "", errors.New("couldnt generate 32 bytes key")
 	}
 
 	token := hex.EncodeToString(key)
@@ -94,17 +94,17 @@ func MakeRefreshToken() (string, error) {
 func GetBearerToken(headers http.Header) (string, error) {
 	authHeader := headers.Get("Authorization")
 	if authHeader == "" {
-		return "", fmt.Errorf("Authorization header not found")
+		return "", fmt.Errorf("authorization header not found")
 	}
 
 	bearerPrefix := "Bearer "
 
 	if !strings.HasPrefix(authHeader, bearerPrefix) {
-		return "", fmt.Errorf("Invalid authorization header format")
+		return "", fmt.Errorf("invalid authorization header format")
 	}
 
 	if authHeader == bearerPrefix {
-		return "", fmt.Errorf("No token provided")
+		return "", fmt.Errorf("no token provided")
 	}
 
 	bearerToken := strings.Replace(authHeader, bearerPrefix, "", 1)
@@ -114,17 +114,17 @@ func GetBearerToken(headers http.Header) (string, error) {
 func GetApiKey(headers http.Header) (string, error) {
 	authHeader := headers.Get("Authorization")
 	if authHeader == "" {
-		return "", fmt.Errorf("Authorization header not found")
+		return "", fmt.Errorf("authorization header not found")
 	}
 
 	apiKeyPrefix := "ApiKey "
 
 	if !strings.HasPrefix(authHeader, apiKeyPrefix) {
-		return "", fmt.Errorf("Invalid authorization header format")
+		return "", fmt.Errorf("invalid authorization header format")
 	}
 
 	if authHeader == apiKeyPrefix {
-		return "", fmt.Errorf("No api key provided")
+		return "", fmt.Errorf("no api key provided")
 	}
 
 	apiKey := strings.Replace(authHeader, apiKeyPrefix, "", 1)
