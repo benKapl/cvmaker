@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/benKapl/cvmaker_api/internal/database"
-	"github.com/benKapl/cvmaker_api/internal/llm"
+	"github.com/benKapl/cvmaker-api/internal/database"
+	"github.com/benKapl/cvmaker-api/internal/llm"
 )
 
 type API struct {

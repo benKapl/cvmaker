@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/benKapl/cvmaker_api/internal/auth"
-	"github.com/benKapl/cvmaker_api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/auth"
+	"github.com/benKapl/cvmaker-api/internal/respond"
 )
 
 type responseRecorder struct {

@@ -1,4 +1,4 @@
-module github.com/benKapl/cvmaker_api
+module github.com/benKapl/cvmaker-api
 
 go 1.23.6
 

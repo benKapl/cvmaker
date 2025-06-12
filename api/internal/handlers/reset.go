@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/benKapl/cvmaker_api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/respond"
 )
 
 func (a *API) handlerReset(w http.ResponseWriter, r *http.Request) {
