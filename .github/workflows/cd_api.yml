@@ -15,7 +15,7 @@ jobs:
     name: Deploy API to Scaleway
     runs-on: ubuntu-latest
 
-    Environment:
+    environment:
       name: Production
 
     steps:
