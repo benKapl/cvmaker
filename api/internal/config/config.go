@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -29,7 +30,28 @@ func Load() (*Config, error) {
 		LLMTimeout: 120 * time.Second, // Default LLM timeout
 	}
 
-	cfg.DBURL = os.Getenv("DB_URL")
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		return nil, errors.New("DB_USER must be set")
+	}
+	dbPwd := os.Getenv("DB_PASSWORD")
+	if dbPwd == "" {
+		return nil, errors.New("DB_PASSWORD must be set")
+	}
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		return nil, errors.New("DB_HOST must be set")
+	}
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		return nil, errors.New("DB_PORT must be set")
+	}
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		return nil, errors.New("DB_NAME must be set")
+	}
+
+	cfg.DBURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPwd, dbHost, dbPort, dbName)
 	cfg.Platform = os.Getenv("PLATFORM")
 	cfg.JWTSecret = os.Getenv("JWT_SECRET")
 	cfg.Port = os.Getenv("PORT")
