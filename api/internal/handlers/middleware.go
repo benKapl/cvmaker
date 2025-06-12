@@ -10,6 +10,10 @@ import (
 	"github.com/benKapl/cvmaker-api/internal/respond"
 )
 
+type userIDKeyType string
+
+const userIDKey userIDKeyType = "userID"
+
 type responseRecorder struct {
 	http.ResponseWriter
 	statusCode   int
@@ -53,7 +57,7 @@ func (a *API) AuthenticateMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx := context.WithValue(r.Context(), userIDKey, userID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
