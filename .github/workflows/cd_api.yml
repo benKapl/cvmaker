@@ -48,6 +48,18 @@ jobs:
           cache-from: type=gha # Use GitHub Actions cache for faster builds
           cache-to: type=gha,mode=max
 
+      - name: Debug Secrets
+        env:
+          SCW_ACCESS_KEY_VAR: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY_VAR: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_ORGANIZATION_ID_VAR: ${{ secrets.SCW_ORGANIZATION_ID }}
+          SCW_PROJECT_ID_VAR: ${{ secrets.SCW_PROJECT_ID }}
+        run: |
+          echo "SCW_ACCESS_KEY_VAR: ${SCW_ACCESS_KEY_VAR}"
+          echo "SCW_SECRET_KEY_VAR: ${SCW_SECRET_KEY_VAR}"
+          echo "SCW_ORGANIZATION_ID_VAR: ${SCW_ORGANIZATION_ID_VAR}"
+          echo "SCW_PROJECT_ID_VAR: ${SCW_PROJECT_ID_VAR}"
+
       - name: Install and Configure Scaleway CLI
         env:
           SCW_ACCESS_KEY_VAR: ${{ secrets.SCW_ACCESS_KEY }}
