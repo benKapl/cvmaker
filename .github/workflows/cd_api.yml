@@ -45,6 +45,11 @@ jobs:
           cache-from: type=gha # Use GitHub Actions cache for faster builds
           cache-to: type=gha,mode=max
 
+      - name: Install Scaleway CLI
+        run: |
+          curl -fsSL https://www.scaleway.com/en/cli/install/ | bash
+                echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
+
       - name: Configure Scaleway CLI Credentials
         uses: scaleway/action-scw-secret@v0
         with:
