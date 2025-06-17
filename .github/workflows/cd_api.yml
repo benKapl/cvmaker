@@ -49,13 +49,20 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Install and Configure Scaleway CLI
+        env:
+          SCW_ACCESS_KEY_VAR: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY_VAR: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_ORGANIZATION_ID_VAR: ${{ secrets.SCW_ORGANIZATION_ID }}
+          SCW_PROJECT_ID_VAR: ${{ secrets.SCW_PROJECT_ID }}
+          DEFAULT_REGION_VAR: 'fr-par'
         run: |
           curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
-          scw config set access-key '${{ secrets.SCW_ACCESS_KEY }}'
-          scw config set secret-key '${{ secrets.SCW_SECRET_KEY }}'
-          scw config set default-organization-id '${{ secrets.SCW_ORGANIZATION_ID }}'
-          scw config set default-project-id '${{ secrets.SCW_PROJECT_ID }}'
+          scw config set access-key "$SCW_ACCESS_KEY_VAR"
+          scw config set secret-key "$SCW_SECRET_KEY_VAR"
+          scw config set default-organization-id "$SCW_ORGANIZATION_ID_VAR"
+          scw config set default-project-id "$SCW_PROJECT_ID_VAR"
+          scw config set default-region "$DEFAULT_REGION_VAR"
 
       - name: Deploy to Scaleway Container
         run: |
