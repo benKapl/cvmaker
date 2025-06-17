@@ -45,33 +45,36 @@ jobs:
           cache-from: type=gha # Use GitHub Actions cache for faster builds
           cache-to: type=gha,mode=max
 
-      - name: Debug Secrets
-        env:
-          SCW_ACCESS_KEY_VAR: ${{ secrets.SCW_ACCESS_KEY }}
-          SCW_SECRET_KEY_VAR: ${{ secrets.SCW_SECRET_KEY }}
-          SCW_ORGANIZATION_ID_VAR: ${{ secrets.SCW_ORGANIZATION_ID }}
-          SCW_PROJECT_ID_VAR: ${{ secrets.SCW_PROJECT_ID }}
-        run: |
-          echo "SCW_ACCESS_KEY_VAR: ${SCW_ACCESS_KEY_VAR}"
-          echo "SCW_SECRET_KEY_VAR: ${SCW_SECRET_KEY_VAR}"
-          echo "SCW_ORGANIZATION_ID_VAR: ${SCW_ORGANIZATION_ID_VAR}"
-          echo "SCW_PROJECT_ID_VAR: ${SCW_PROJECT_ID_VAR}"
-
       - name: Install and Configure Scaleway CLI
         env:
-          SCW_ACCESS_KEY_VAR: ${{ secrets.SCW_ACCESS_KEY }}
-          SCW_SECRET_KEY_VAR: ${{ secrets.SCW_SECRET_KEY }}
-          SCW_ORGANIZATION_ID_VAR: ${{ secrets.SCW_ORGANIZATION_ID }}
-          SCW_PROJECT_ID_VAR: ${{ secrets.SCW_PROJECT_ID }}
-          DEFAULT_REGION_VAR: 'fr-par'
+          # Keep the environment variables at the step level for GitHub Actions to inject them
+          SCW_ACCESS_KEY_ENV: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY_ENV: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_ORGANIZATION_ID_ENV: ${{ secrets.SCW_ORGANIZATION_ID }}
+          SCW_PROJECT_ID_ENV: ${{ secrets.SCW_PROJECT_ID }}
+          DEFAULT_REGION_ENV: 'fr-par'
         run: |
+          set -e # Exit immediately if a command exits with a non-zero status
+
+          # Install Scaleway CLI
           curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
-          scw config set access-key "$SCW_ACCESS_KEY_VAR"
-          scw config set secret-key "$SCW_SECRET_KEY_VAR"
-          scw config set default-organization-id "$SCW_ORGANIZATION_ID_VAR"
-          scw config set default-project-id "$SCW_PROJECT_ID_VAR"
-          scw config set default-region "$DEFAULT_REGION_VAR"
+
+          # Debug: Print the values explicitly using printf %q to see what the shell sees
+          # This should show the actual value, properly quoted, if the secret is resolved
+          echo "DEBUG: SCW_ACCESS_KEY_ENV (quoted): $(printf %q "$SCW_ACCESS_KEY_ENV")"
+          echo "DEBUG: SCW_SECRET_KEY_ENV (quoted): $(printf %q "$SCW_SECRET_KEY_ENV")"
+          echo "DEBUG: SCW_ORGANIZATION_ID_ENV (quoted): $(printf %q "$SCW_ORGANIZATION_ID_ENV")"
+          echo "DEBUG: SCW_PROJECT_ID_ENV (quoted): $(printf %q "$SCW_PROJECT_ID_ENV")"
+
+          # Configure the Scaleway CLI using the environment variables and printf %q
+          # This ensures that the secret values are passed as literal strings,
+          # regardless of their content (spaces, special characters, etc.)
+          scw config set access-key "$(printf %q "$SCW_ACCESS_KEY_ENV")"
+          scw config set secret-key "$(printf %q "$SCW_SECRET_KEY_ENV")"
+          scw config set default-organization-id "$(printf %q "$SCW_ORGANIZATION_ID_ENV")"
+          scw config set default-project-id "$(printf %q "$SCW_PROJECT_ID_ENV")"
+          scw config set default-region "$(printf %q "$DEFAULT_REGION_ENV")"
 
       - name: Deploy to Scaleway Container
         run: |
