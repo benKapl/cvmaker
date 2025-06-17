@@ -56,7 +56,7 @@ jobs:
           scw config set access-key ${{ secrets.SCW_ACCESS_KEY }}
           scw config set secret-key ${{ secrets.SCW_SECRET_KEY }}
           scw config set default-organization-id ${{ secrets.SCW_ORGANIZATION_ID }}
-          scw config set default_project-id ${{ secrets.SCW_PROJECT_ID }}
+          scw config set default-project-id ${{ secrets.SCW_PROJECT_ID }}
 
       - name: Deploy to Scaleway Container
         run: |
