@@ -45,22 +45,36 @@ jobs:
           cache-from: type=gha # Use GitHub Actions cache for faster builds
           cache-to: type=gha,mode=max
 
-      - name: Install Scaleway CLI
+      - name: Install and Configure Scaleway CLI
+        env:
+          # Expose Scaleway credentials as environment variables for the CLI
+          # The 'scw' CLI will automatically pick these up for authentication.
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_ORGANIZATION_ID }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+          SCW_DEFAULT_REGION: 'fr-par' # Set default region here too
         run: |
+          set -e # Exit immediately if a command fails
+
+          # Install the Scaleway CLI
           curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
 
-      - name: Configure Scaleway CLI Credentials
-        uses: scaleway/action-scw-secret@v0
-        with:
-          access-key: ${{ secrets.SCW_ACCESS_KEY }}
-          secret-key: ${{ secrets.SCW_SECRET_KEY }}
-          default-project-id: ${{ secrets.SCW_PROJECT_ID }}
-          default-organization-id: ${{ secrets.SCW_ORGANIZATION_ID }}
-          default-region: 'fr-par'
+          # Verify scw is installed and accessible (optional but good for debugging)
+          which scw || { echo "scw command not found after installation!"; exit 1; }
+          scw version # To confirm it's working
+
+          # Test authentication with a simple command that requires credentials
+          # This command should now succeed as SCW_ACCESS_KEY, SCW_SECRET_KEY etc.
+          # are set as environment variables for this and subsequent steps.
+          echo "Attempting to retrieve Scaleway account info..."
+          scw account organization get "$SCW_DEFAULT_ORGANIZATION_ID"
+          echo "Scaleway CLI successfully authenticated and retrieved organization info."
 
       - name: Deploy to Scaleway Container
         run: |
-          CONTAINER_ID='${{ secrets.SCW_CONTAINER_RUN_SERVICE_ID }}'
+          set -e
+          CONTAINER_ID="${{ secrets.SCW_CONTAINER_RUN_SERVICE_ID }}"
            # scw container-run deploy $CONTAINER_ID image=rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
           scw container container deploy $CONTAINER_ID
