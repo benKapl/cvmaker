@@ -50,14 +50,18 @@ jobs:
 
       - name: Install and Configure Scaleway CLI
         env:
-          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
-          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
-          SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_ORGANIZATION_ID }}
-          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+          SCW_ACCESS_KEY: 
+          SCW_SECRET_KEY: 
+          SCW_DEFAULT_ORGANIZATION_ID: 
+          SCW_DEFAULT_PROJECT_ID: 
         run: |
           curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
-          scw init
+          # Configure the Scaleway CLI using the environment variables
+          scw config set access_key ${{ secrets.SCW_ACCESS_KEY }}
+          scw config set secret_key ${{ secrets.SCW_SECRET_KEY }}
+          scw config set default_organization_id ${{ secrets.SCW_ORGANIZATION_ID }}
+          scw config set default_project_id ${{ secrets.SCW_PROJECT_ID }}
 
       - name: Deploy to Scaleway Container
         run: |
