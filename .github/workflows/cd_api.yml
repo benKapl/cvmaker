@@ -69,7 +69,7 @@ jobs:
           # This command should now succeed as SCW_ACCESS_KEY, SCW_SECRET_KEY etc.
           # are set as environment variables for this and subsequent steps.
           echo "Attempting to retrieve Scaleway account info..."
-          scw account organization get "$SCW_DEFAULT_ORGANIZATION_ID"
+          scw account project get "$SCW_DEFAULT_PROJECT_ID"
           echo "Scaleway CLI successfully authenticated and retrieved organization info."
 
       - name: Deploy to Scaleway Container
