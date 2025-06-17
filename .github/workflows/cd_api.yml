@@ -49,11 +49,6 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Install and Configure Scaleway CLI
-        env:
-          SCW_ACCESS_KEY: 
-          SCW_SECRET_KEY: 
-          SCW_DEFAULT_ORGANIZATION_ID: 
-          SCW_DEFAULT_PROJECT_ID: 
         run: |
           curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
