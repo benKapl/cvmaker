@@ -40,7 +40,7 @@ func (a *API) handlerRawProjectsCreate(w http.ResponseWriter, r *http.Request) {
 		Project Project
 	}
 
-	userID, ok := r.Context().Value("userID").(uuid.UUID)
+	userID, ok := r.Context().Value(userIDKey).(uuid.UUID)
 	if !ok {
 		respond.WithError(w, http.StatusInternalServerError, "Could not get userID, from Context", nil)
 		return
