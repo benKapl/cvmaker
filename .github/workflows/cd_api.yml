@@ -55,7 +55,7 @@ jobs:
           SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_ORGANIZATION_ID }}
           SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
         run: |
-          curl -fsSL https://www.scaleway.com/en/cli/install/ | bash
+          curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
           scw init
 
