@@ -58,9 +58,9 @@ jobs:
           default-project-id: ${{ secrets.SCW_PROJECT_ID }}
           default-organization-id: ${{ secrets.SCW_ORGANIZATION_ID }}
           default-region: 'fr-par'
-
+          container-id: 
       - name: Deploy to Scaleway Container
         run: |
           CONTAINER_ID='${{ secrets.SCW_CONTAINER_RUN_SERVICE_ID }}'
-          echo "Deploying image to container ID: $CONTAINER_ID"
-          scw container-run deploy $CONTAINER_ID image=rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
+           # scw container-run deploy $CONTAINER_ID image=rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
+          scw container container deploy $CONTAINER_ID
