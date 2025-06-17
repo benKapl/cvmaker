@@ -45,41 +45,14 @@ jobs:
           cache-from: type=gha # Use GitHub Actions cache for faster builds
           cache-to: type=gha,mode=max
 
-      - name: Install and Configure Scaleway CLI
-        # Removed the env block for the secrets here.
-        # We will directly export them within the run block.
-        # DEFAULT_REGION_ENV can stay in env as it's not a sensitive secret
-        env:
-          DEFAULT_REGION_ENV: 'fr-par'
-        run: |
-          set -e # Exit immediately if a command exits with a non-zero status
-
-          # Install Scaleway CLI
-          curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
-
-          # Directly export secrets for this run command.
-          # This forces immediate resolution of the secret values.
-          # We use a temporary variable name for the shell to avoid conflicts
-          # and then use printf %q for robust quoting.
-          SCW_ACCESS_KEY_VAL=$(printf %q "${{ secrets.SCW_ACCESS_KEY }}")
-          SCW_SECRET_KEY_VAL=$(printf %q "${{ secrets.SCW_SECRET_KEY }}")
-          SCW_ORGANIZATION_ID_VAL=$(printf %q "${{ secrets.SCW_ORGANIZATION_ID }}")
-          SCW_PROJECT_ID_VAL=$(printf %q "${{ secrets.SCW_PROJECT_ID }}")
-
-          # DEBUG: Print the values explicitly using printf %q to see what the shell sees
-          # This should now hopefully show the actual values
-          echo "DEBUG: SCW_ACCESS_KEY_VAL (quoted): $SCW_ACCESS_KEY_VAL"
-          echo "DEBUG: SCW_SECRET_KEY_VAL (quoted): $SCW_SECRET_KEY_VAL"
-          echo "DEBUG: SCW_ORGANIZATION_ID_VAL (quoted): $SCW_ORGANIZATION_ID_VAL"
-          echo "DEBUG: SCW_PROJECT_ID_VAL (quoted): $SCW_PROJECT_ID_VAL"
-
-          # Configure the Scaleway CLI using the exported values
-          scw config set access-key "$SCW_ACCESS_KEY_VAL"
-          scw config set secret-key "$SCW_SECRET_KEY_VAL"
-          scw config set default-organization-id "$SCW_ORGANIZATION_ID_VAL"
-          scw config set default-project-id "$SCW_PROJECT_ID_VAL"
-          scw config set default-region "$DEFAULT_REGION_ENV"
+      - name: Configure Scaleway CLI Credentials
+        uses: scaleway/action-scw-secret@v0
+        with:
+          access-key: ${{ secrets.SCW_ACCESS_KEY }}
+          secret-key: ${{ secrets.SCW_SECRET_KEY }}
+          default-project-id: ${{ secrets.SCW_PROJECT_ID }}
+          default-organization-id: ${{ secrets.SCW_ORGANIZATION_ID }}
+          default-region: 'fr-par'
 
       - name: Deploy to Scaleway Container
         run: |
