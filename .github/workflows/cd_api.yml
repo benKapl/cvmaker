@@ -1,10 +1,13 @@
 name: cd-api
 
 on:
-  pull_request:
+  push:
     branches: [main]
     paths:
       - "api/**" # Trigger only if there are changes in the api directory
+
+  # Manual Trigger
+  workflow_dispatch:
 
 defaults:
   run:
@@ -12,11 +15,8 @@ defaults:
 
 jobs:
   deploy:
-    name: Deploy API to Scaleway
+    name: Deploy to Production
     runs-on: ubuntu-latest
-
-    environment:
-      name: Production
 
     steps:
       - name: Checkout code
@@ -27,16 +27,17 @@ jobs:
 
       - name: Login to Scaleway Container Registry
         uses: docker/login-action@v3
-        with: 
-          registry: rg.fr-par.scw.cloud
-          username: ${{ secrets.SCW_ACCESS_KEY }}
+        with:
+          registry: rg.fr-par.scw.cloud/cvmaker-namespace
+          # Note: Scaleway uses 'nologin' as the username for token-based auth
+          username: nologin
           password: ${{ secrets.SCW_SECRET_KEY }}
           
       - name: Build and Push Docker image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./api
           push: true 
           tags: |
             rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:latest
@@ -46,13 +47,16 @@ jobs:
 
       - name: Install Scaleway CLI
         run: |
-          curl -fsSL https://www.scaleway.com/en/cli/install/ | bash
+          curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH # Add scw to PATH for subsequent steps
 
-      - name: Configure Scaleway CLI
+      - name: Deploy to Scaleway Container
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_PROJECT_ID }}
+          SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_ORGANIZATION_ID }}
         run: |
-          scw init -p newprofile access-key=${{ secrets.SCW_ACCESS_KEY }} secret-key=${{ secrets.SCW_SECRET_KEY }} organization-id=${{ secrets.SCW_ORGANIZATION_ID }} project-id=${{ secrets.SCW_PROJECT_ID }}
-
-      - name: Deploy new image to Scaleway Container Run
-        run: |
-          scw container deploy ${{ secrets.SCW_CONTAINER_RUN_SERVICE_ID }} image=rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
+          CONTAINER_ID='${{ secrets.SCW_CONTAINER_RUN_SERVICE_ID }}'
+           # scw container-run deploy $CONTAINER_ID image=rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
+          scw container container deploy $CONTAINER_ID
