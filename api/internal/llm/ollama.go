@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-type GenerateParams struct {
+type ollamaGenerateRequest struct {
 	Model  string         `json:"model"`
 	Prompt string         `json:"prompt"`
 	Format map[string]any `json:"format,omitempty"`
 	Stream bool           `json:"stream"`
 }
-type GenerateResponse struct {
+type ollamaGenerateResponse struct {
 	Model              string    `json:"model"`
 	CreatedAt          time.Time `json:"created_at"`
 	Response           string    `json:"response"`
@@ -26,6 +26,10 @@ type GenerateResponse struct {
 	PromptEvalDuration int       `json:"prompt_eval_duration"`
 	EvalCount          int       `json:"eval_count"`
 	EvalDuration       int64     `json:"eval_duration"`
+}
+
+type ollamaClient struct {
+	baseClient
 }
 
 func (lc *LLMClient) generate(prompt string, format map[string]any) (GenerateResponse, error) {

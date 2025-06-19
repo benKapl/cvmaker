@@ -1,22 +1,18 @@
 package llm
 
-import (
-	"net/http"
-	"time"
-)
+import "context"
 
-type LLMClient struct {
-	baseUrl    string
-	httpClient http.Client
-	llmConfig  LLMConfig
+type GenerateRequest struct {
+	Model      string
+	Prompt     string
+	Format     map[string]any
+	isStreamed bool
 }
 
-func NewClient(timeout time.Duration) LLMClient {
-	return LLMClient{
-		baseUrl: baseUrl,
-		httpClient: http.Client{
-			Timeout: timeout,
-		},
-		llmConfig: NewLLMConfig(),
-	}
+type GenerateResponse struct {
+	Content string
+}
+
+type LLMClient interface {
+	Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error)
 }
