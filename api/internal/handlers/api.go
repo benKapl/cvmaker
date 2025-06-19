@@ -7,12 +7,12 @@ import (
 
 type API struct {
 	DB        *database.Queries
-	LLMClient llm.Client
+	LLMClient llm.LLMClient
 	JWTSecret string
 	Platform  string
 }
 
-func NewAPI(db *database.Queries, llmClient llm.Client, jwtSecret, platform string) *API {
+func NewAPI(db *database.Queries, llmClient llm.LLMClient, jwtSecret, platform string) *API {
 	return &API{
 		DB:        db,
 		LLMClient: llmClient,

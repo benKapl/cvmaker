@@ -52,10 +52,10 @@ var (
 
 // Call the LLM generation endpoint to parse a job offer into a specific format
 // Decodes the response into a strongly type LLMOffer and returns it
-func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
+func (lc *LLMClient) ParseOffer(rawOffer string) (LLMOffer, error) {
 
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
-	generateResponse, err := c.generate(prompt, offerFormat)
+	generateResponse, err := lc.generate(prompt, offerFormat)
 	if err != nil {
 		return LLMOffer{}, fmt.Errorf("LLM generation failed: %w", err)
 	}
@@ -70,8 +70,6 @@ func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
 	if err != nil {
 		return LLMOffer{}, fmt.Errorf("failed to unmarshal LLM response into LLMOffer: %w. JSON data: %s", err, formattedOffer)
 	}
-
-	fmt.Println(offer.Miscellaneous)
 
 	// Handle missing required values
 	if offer.Title == "" {

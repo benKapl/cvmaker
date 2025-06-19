@@ -8,10 +8,10 @@ import (
 )
 
 type GenerateParams struct {
-	Model  string                 `json:"model"`
-	Prompt string                 `json:"prompt"`
-	Format map[string]interface{} `json:"format,omitempty"`
-	Stream bool                   `json:"stream"`
+	Model  string         `json:"model"`
+	Prompt string         `json:"prompt"`
+	Format map[string]any `json:"format,omitempty"`
+	Stream bool           `json:"stream"`
 }
 type GenerateResponse struct {
 	Model              string    `json:"model"`
@@ -28,14 +28,14 @@ type GenerateResponse struct {
 	EvalDuration       int64     `json:"eval_duration"`
 }
 
-func (c *Client) generate(prompt string, format map[string]interface{}) (GenerateResponse, error) {
-	url := c.baseUrl + "/api/generate"
+func (lc *LLMClient) generate(prompt string, format map[string]any) (GenerateResponse, error) {
+	url := lc.baseUrl + "/api/generate"
 
 	params := GenerateParams{
 		Prompt: prompt,
-		Model:  c.llmConfig.model,
+		Model:  lc.llmConfig.model,
 		Format: format,
-		Stream: c.llmConfig.isStreamed,
+		Stream: lc.llmConfig.isStreamed,
 	}
 
 	jsonData, err := json.Marshal(params)
@@ -50,7 +50,7 @@ func (c *Client) generate(prompt string, format map[string]interface{}) (Generat
 
 	req.Header.Set("Content-Type", "application/json")
 
-	res, err := c.httpClient.Do(req)
+	res, err := lc.httpClient.Do(req)
 	if err != nil {
 		return GenerateResponse{}, err
 	}

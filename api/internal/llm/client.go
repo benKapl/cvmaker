@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-type Client struct {
+type LLMClient struct {
 	baseUrl    string
 	httpClient http.Client
 	llmConfig  LLMConfig
 }
 
-func NewClient(timeout time.Duration) Client {
-	return Client{
+func NewClient(timeout time.Duration) LLMClient {
+	return LLMClient{
 		baseUrl: baseUrl,
 		httpClient: http.Client{
 			Timeout: timeout,
