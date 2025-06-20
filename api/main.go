@@ -33,6 +33,7 @@ func main() {
 	}
 
 	dbQueries := database.New(dbConn)
+
 	llmClient := llm.NewClient(cfg.LLMTimeout)
 
 	api := handlers.NewAPI(dbQueries, llmClient, cfg.JWTSecret, cfg.Platform)

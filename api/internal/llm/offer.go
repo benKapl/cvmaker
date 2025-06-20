@@ -52,7 +52,7 @@ var (
 
 // Call the LLM generation endpoint to parse a job offer into a specific format
 // Decodes the response into a strongly type LLMOffer and returns it
-func (lc *LLMClient) ParseOffer(rawOffer string) (LLMOffer, error) {
+func (lc LLMClient) ParseOffer(rawOffer string) (LLMOffer, error) {
 
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
 	generateResponse, err := lc.Generate(prompt, offerFormat)

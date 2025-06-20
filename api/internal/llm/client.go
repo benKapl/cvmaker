@@ -3,10 +3,10 @@ package llm
 import "context"
 
 type GenerateParams struct {
-	Model      string
-	Prompt     string
-	Format     map[string]any
-	IsStreamed bool
+	Model  string
+	Prompt string
+	Format map[string]any
+	Stream bool
 }
 
 type GenerateResponse struct {

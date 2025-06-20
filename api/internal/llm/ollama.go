@@ -9,10 +9,10 @@ import (
 )
 
 type ollamaGenerateParams struct {
-	Model    string         `json:"model"`
-	Prompt   string         `json:"prompt"`
-	Format   map[string]any `json:"format,omitempty"`
-	IsStream bool           `json:"stream"`
+	Model  string         `json:"model"`
+	Prompt string         `json:"prompt"`
+	Format map[string]any `json:"format,omitempty"`
+	Stream bool           `json:"stream"`
 }
 type ollamaGenerateResponse struct {
 	Model              string    `json:"model"`
@@ -29,20 +29,25 @@ type ollamaGenerateResponse struct {
 	EvalDuration       int64     `json:"eval_duration"`
 }
 
-type ollamaClient struct {
+type OllamaClient struct {
 	baseClient
 }
 
-func NewOllamaClient()
+func NewOllamaClient(url string, timeout time.Duration) OllamaClient {
+	baseClient := newBaseClient(url, "", timeout)
+	return OllamaClient{
+		baseClient,
+	}
+}
 
-func (c *ollamaClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
+func (c *OllamaClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
 	url := c.baseUrl + "/api/generate"
 
 	ollamaParams := &ollamaGenerateParams{
-		Prompt:   params.Prompt,
-		Model:    params.Model,
-		Format:   params.Format,
-		IsStream: params.IsStreamed,
+		Prompt: params.Prompt,
+		Model:  params.Model,
+		Format: params.Format,
+		Stream: params.Stream,
 	}
 
 	jsonData, err := json.Marshal(*ollamaParams)
@@ -63,12 +68,16 @@ func (c *ollamaClient) Generate(ctx context.Context, params *GenerateParams) (Ge
 	}
 	defer res.Body.Close()
 
-	var response GenerateResponse
+	var ollamaResponse ollamaGenerateResponse
 
 	decoder := json.NewDecoder(res.Body)
-	err = decoder.Decode(&response)
+	err = decoder.Decode(&ollamaResponse)
 	if err != nil {
 		return GenerateResponse{}, err
+	}
+
+	response := GenerateResponse{
+		Content: ollamaResponse.Response,
 	}
 
 	return response, nil

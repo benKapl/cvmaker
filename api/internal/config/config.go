@@ -8,15 +8,17 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/benKapl/cvmaker-api/internal/llm"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DBURL      string
-	Platform   string
-	JWTSecret  string
-	Port       string
-	LLMTimeout time.Duration
+	DBURL         string
+	Platform      string
+	JWTSecret     string
+	Port          string
+	OllamaUrl     string
+	OllamaTimeout time.Duration
 }
 
 // Load reads configuration from environment variables (.env file is supported)
@@ -27,7 +29,7 @@ func Load() (*Config, error) {
 	}
 
 	cfg := Config{
-		LLMTimeout: 120 * time.Second, // Default LLM timeout
+		OllamaTimeout: 30 * time.Second,
 	}
 
 	dbUser := os.Getenv("DB_USER")
@@ -55,13 +57,14 @@ func Load() (*Config, error) {
 	cfg.Platform = os.Getenv("PLATFORM")
 	cfg.JWTSecret = os.Getenv("JWT_SECRET")
 	cfg.Port = os.Getenv("PORT")
-	llmTimeoutStr := os.Getenv("LLM_TIMEOUT_SECONDS")
-	if llmTimeoutStr != "" {
-		seconds, err := strconv.Atoi(llmTimeoutStr)
+	cfg.OllamaUrl = os.Getenv("OLLAMA_URL")
+	ollamaTimeoutStr := os.Getenv("OLLAMA_TIMEOUT_SECONDS")
+	if ollamaTimeoutStr != "" {
+		seconds, err := strconv.Atoi(ollamaTimeoutStr)
 		if err == nil {
-			cfg.LLMTimeout = time.Duration(seconds) * time.Second
+			cfg.OllamaTimeout = time.Duration(seconds) * time.Second
 		} else {
-			log.Printf("Warning: Invalid LLM_TIMEOUT_SECONDS value '%s', using default %v\n", llmTimeoutStr, cfg.LLMTimeout)
+			log.Printf("Warning: Invalid LLM_TIMEOUT_SECONDS value '%s', using default %v\n", ollamaTimeoutStr, cfg.OllamaTimeout)
 		}
 	}
 
@@ -77,7 +80,16 @@ func Load() (*Config, error) {
 	if cfg.Port == "" {
 		return nil, errors.New("PORT must be set")
 	}
+	if cfg.OllamaUrl == "" {
+		return nil, errors.New("OLLAMA_URL must be set")
+	}
 
 	log.Printf("Configuration loaded successfully (Environment: %s)", cfg.Platform)
 	return &cfg, nil
+}
+
+func GetLLMClient(conf *Config) llm.LLMClient {
+	if conf.Platform == "dev" {
+		return llm.NewOllamaClient(conf.OllamaUrl, conf.OllamaTimeout)
+	}
 }
