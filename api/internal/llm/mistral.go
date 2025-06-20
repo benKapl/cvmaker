@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -149,6 +150,7 @@ func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (G
 
 	decoder := json.NewDecoder(res.Body)
 	err = decoder.Decode(&mistralResponse)
+	log.Println("ERR FRERE", err)
 	if err != nil {
 		return GenerateResponse{}, err
 	}

@@ -50,7 +50,7 @@ func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call the prompter to parse the offer
+	// Call the service ParseOffer from the prompter package
 	parsedOffer, err := prompter.ParseOffer(r.Context(), params.Body, a.LLMClient)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Couldn't parse offer", err)
