@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -31,13 +32,18 @@ type ollamaGenerateResponse struct {
 
 type OllamaClient struct {
 	baseClient
+	model string
 }
 
-func NewOllamaClient(url string, timeout time.Duration) OllamaClient {
+func NewOllamaClient(url string, timeout time.Duration) *OllamaClient {
 	baseClient := newBaseClient(url, "", timeout)
-	return OllamaClient{
-		baseClient,
+	return &OllamaClient{
+		baseClient: baseClient,
+		model:      "mistral:7b", // TO BE REFACTOR AS CONFIG PARAMETER !
 	}
+}
+func (c *OllamaClient) String() string {
+	return fmt.Sprintf("OllamaClient (model: %s)", c.model)
 }
 
 func (c *OllamaClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {

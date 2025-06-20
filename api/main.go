@@ -8,7 +8,6 @@ import (
 	"github.com/benKapl/cvmaker-api/internal/config"
 	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/handlers"
-	"github.com/benKapl/cvmaker-api/internal/llm"
 	_ "github.com/lib/pq"
 )
 
@@ -34,7 +33,8 @@ func main() {
 
 	dbQueries := database.New(dbConn)
 
-	llmClient := llm.NewClient(cfg.LLMTimeout)
+	llmClient := config.GetLLMClient(cfg)
+	log.Println(llmClient.String())
 
 	api := handlers.NewAPI(dbQueries, llmClient, cfg.JWTSecret, cfg.Platform)
 

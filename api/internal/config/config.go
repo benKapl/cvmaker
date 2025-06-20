@@ -88,8 +88,9 @@ func Load() (*Config, error) {
 	return &cfg, nil
 }
 
-func GetLLMClient(conf *Config) llm.LLMClient {
-	if conf.Platform == "dev" {
-		return llm.NewOllamaClient(conf.OllamaUrl, conf.OllamaTimeout)
+func GetLLMClient(cfg *Config) llm.LLMClient {
+	if cfg.Platform == "dev" {
+		return llm.NewOllamaClient(cfg.OllamaUrl, cfg.OllamaTimeout)
 	}
+	return llm.NewOllamaClient("foo", 120*time.Second)
 }
