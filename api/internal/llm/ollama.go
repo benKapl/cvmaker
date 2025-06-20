@@ -42,6 +42,7 @@ func NewOllamaClient(url string, timeout time.Duration) *OllamaClient {
 		model:      "mistral", // TO BE REFACTOR AS CONFIG PARAMETER !
 	}
 }
+
 func (c *OllamaClient) String() string {
 	return fmt.Sprintf("OllamaClient (model: %s)", c.model)
 }

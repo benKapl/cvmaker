@@ -1,33 +1,40 @@
 package llm
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 )
 
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+type JSONSchema struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Schema      map[string]any `json:"schema"`
+	Strict      bool           `json:"strict"`
+}
+
+type ResponseFormat struct {
+	Type       string     `json:"type"`
+	JSONSchema JSONSchema `json:"json_schema"`
+}
 type mistralGenerateParams struct {
-	Model       string  `json:"model"`
-	Temperature float64 `json:"temperature"`
-	TopP        int     `json:"top_p"`
-	MaxTokens   int     `json:"max_tokens"`
-	Stream      bool    `json:"stream"`
-	Stop        string  `json:"stop"`
-	RandomSeed  int     `json:"random_seed"`
-	Messages    []struct {
-		Role    string `json:"role"`
-		Content string `json:"content"`
-	} `json:"messages"`
-	ResponseFormat struct {
-		Type       string `json:"type"`
-		JSONSchema struct {
-			Name        string         `json:"name"`
-			Description string         `json:"description"`
-			Schema      map[string]any `json:"schema"`
-			Strict      bool           `json:"strict"`
-		} `json:"json_schema"`
-	} `json:"response_format"`
-	Tools []struct {
+	Model          string         `json:"model"`
+	Temperature    float64        `json:"temperature"`
+	TopP           int            `json:"top_p"`
+	MaxTokens      int            `json:"max_tokens"`
+	Stream         bool           `json:"stream"`
+	Stop           string         `json:"stop"`
+	RandomSeed     int            `json:"random_seed"`
+	Messages       []Message      `json:"messages"`
+	ResponseFormat ResponseFormat `json:"response_format"`
+	Tools          []struct {
 		Type     string `json:"type"`
 		Function struct {
 			Name        string `json:"name"`
@@ -98,4 +105,60 @@ func (c *mistralClient) String() string {
 	return fmt.Sprintf("MistralClient (model: %s)", c.model)
 }
 
-func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error)
+func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
+	// declare url
+	// url := c.baseUrl + "/v1/chat/completions"
+	url := "https://api.mistral.ai/v1/chat/completions"
+
+	mistralParams := &mistralGenerateParams{
+		Model:  c.model,
+		Stream: params.Stream,
+		Messages: []Message{
+			{
+				Role:    "user",
+				Content: params.Prompt,
+			},
+		},
+		ResponseFormat: ResponseFormat{
+			Type: "json_object",
+			JSONSchema: JSONSchema{
+				Name:   "Formatted JSON Response",
+				Schema: params.Format,
+				Strict: true,
+			},
+		},
+	}
+
+	jsonData, err := json.Marshal(*mistralParams)
+	if err != nil {
+		return GenerateResponse{}, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return GenerateResponse{}, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return GenerateResponse{}, err
+	}
+	defer res.Body.Close()
+
+	var mistralResponse mistralGenerateResponse
+
+	decoder := json.NewDecoder(res.Body)
+	err = decoder.Decode(&mistralResponse)
+	if err != nil {
+		return GenerateResponse{}, err
+	}
+
+	response := GenerateResponse{
+		Content: mistralResponse.Choices[0].Message.Content,
+	}
+
+	return response, nil
+
+}
