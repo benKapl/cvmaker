@@ -2,16 +2,17 @@ package llm
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 )
 
-type ollamaGenerateRequest struct {
-	Model  string         `json:"model"`
-	Prompt string         `json:"prompt"`
-	Format map[string]any `json:"format,omitempty"`
-	Stream bool           `json:"stream"`
+type ollamaGenerateParams struct {
+	Model    string         `json:"model"`
+	Prompt   string         `json:"prompt"`
+	Format   map[string]any `json:"format,omitempty"`
+	IsStream bool           `json:"stream"`
 }
 type ollamaGenerateResponse struct {
 	Model              string    `json:"model"`
@@ -32,17 +33,19 @@ type ollamaClient struct {
 	baseClient
 }
 
-func (lc *LLMClient) generate(prompt string, format map[string]any) (GenerateResponse, error) {
-	url := lc.baseUrl + "/api/generate"
+func NewOllamaClient()
 
-	params := GenerateParams{
-		Prompt: prompt,
-		Model:  lc.llmConfig.model,
-		Format: format,
-		Stream: lc.llmConfig.isStreamed,
+func (c *ollamaClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
+	url := c.baseUrl + "/api/generate"
+
+	ollamaParams := &ollamaGenerateParams{
+		Prompt:   params.Prompt,
+		Model:    params.Model,
+		Format:   params.Format,
+		IsStream: params.IsStreamed,
 	}
 
-	jsonData, err := json.Marshal(params)
+	jsonData, err := json.Marshal(*ollamaParams)
 	if err != nil {
 		return GenerateResponse{}, err
 	}
@@ -54,7 +57,7 @@ func (lc *LLMClient) generate(prompt string, format map[string]any) (GenerateRes
 
 	req.Header.Set("Content-Type", "application/json")
 
-	res, err := lc.httpClient.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return GenerateResponse{}, err
 	}

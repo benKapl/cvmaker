@@ -55,7 +55,7 @@ var (
 func (lc *LLMClient) ParseOffer(rawOffer string) (LLMOffer, error) {
 
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
-	generateResponse, err := lc.generate(prompt, offerFormat)
+	generateResponse, err := lc.Generate(prompt, offerFormat)
 	if err != nil {
 		return LLMOffer{}, fmt.Errorf("LLM generation failed: %w", err)
 	}

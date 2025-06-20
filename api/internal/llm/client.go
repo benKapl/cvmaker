@@ -2,11 +2,11 @@ package llm
 
 import "context"
 
-type GenerateRequest struct {
+type GenerateParams struct {
 	Model      string
 	Prompt     string
 	Format     map[string]any
-	isStreamed bool
+	IsStreamed bool
 }
 
 type GenerateResponse struct {
@@ -14,5 +14,5 @@ type GenerateResponse struct {
 }
 
 type LLMClient interface {
-	Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error)
+	Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error)
 }
