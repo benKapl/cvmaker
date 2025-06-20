@@ -106,9 +106,7 @@ func (c *mistralClient) String() string {
 }
 
 func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
-	// declare url
-	// url := c.baseUrl + "/v1/chat/completions"
-	url := "https://api.mistral.ai/v1/chat/completions"
+	url := c.baseUrl + "/v1/chat/completions"
 
 	mistralParams := &mistralGenerateParams{
 		Model:  c.model,
