@@ -1,6 +1,9 @@
 package llm
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type GenerateParams struct {
 	Model  string
@@ -15,4 +18,5 @@ type GenerateResponse struct {
 
 type LLMClient interface {
 	Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error)
+	fmt.Stringer
 }

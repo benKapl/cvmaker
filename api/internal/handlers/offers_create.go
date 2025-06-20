@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/benKapl/cvmaker-api/internal/database"
+	"github.com/benKapl/cvmaker-api/internal/prompter"
 	"github.com/benKapl/cvmaker-api/internal/respond"
 	"github.com/google/uuid"
 )
@@ -50,7 +51,7 @@ func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the LLM to parse the offer
-	llmOffer, err := a.LLMClient.ParseOffer(params.Body)
+	llmOffer, err := prompter.ParseOffer(r.Context, params.Body)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Couldn't parse offer", err)
 		return

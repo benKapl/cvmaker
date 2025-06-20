@@ -39,7 +39,7 @@ func NewOllamaClient(url string, timeout time.Duration) *OllamaClient {
 	baseClient := newBaseClient(url, "", timeout)
 	return &OllamaClient{
 		baseClient: baseClient,
-		model:      "mistral:7b", // TO BE REFACTOR AS CONFIG PARAMETER !
+		model:      "mistral", // TO BE REFACTOR AS CONFIG PARAMETER !
 	}
 }
 func (c *OllamaClient) String() string {
@@ -50,8 +50,8 @@ func (c *OllamaClient) Generate(ctx context.Context, params *GenerateParams) (Ge
 	url := c.baseUrl + "/api/generate"
 
 	ollamaParams := &ollamaGenerateParams{
+		Model:  c.model,
 		Prompt: params.Prompt,
-		Model:  params.Model,
 		Format: params.Format,
 		Stream: params.Stream,
 	}
