@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/benKapl/cvmaker-api/internal/llm"
 )
@@ -55,6 +56,7 @@ var (
 
 func ParseOffer(ctx context.Context, rawOffer string, llmClient llm.LLMClient) (ParsedOffer, error) {
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
+	log.Println(prompt)
 	params := &llm.GenerateParams{
 		Prompt: prompt,
 		Format: offerFormat,

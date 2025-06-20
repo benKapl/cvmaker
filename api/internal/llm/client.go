@@ -6,7 +6,6 @@ import (
 )
 
 type GenerateParams struct {
-	Model  string
 	Prompt string
 	Format map[string]any
 	Stream bool

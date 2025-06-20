@@ -34,7 +34,7 @@ func main() {
 	dbQueries := database.New(dbConn)
 
 	llmClient := config.GetLLMClient(cfg)
-	log.Println(llmClient.String())
+	log.Println("LLMClient: ", llmClient.String())
 
 	api := handlers.NewAPI(dbQueries, llmClient, cfg.JWTSecret, cfg.Platform)
 

@@ -50,25 +50,25 @@ func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call the LLM to parse the offer
-	llmOffer, err := prompter.ParseOffer(r.Context, params.Body)
+	// Call the prompter to parse the offer
+	parsedOffer, err := prompter.ParseOffer(params.Body, a.LLMClient)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Couldn't parse offer", err)
 		return
 	}
 
 	dbParams := database.CreateOfferParams{
-		Title:           llmOffer.Title,
-		Organization:    llmOffer.Organization,
-		Missions:        llmOffer.Missions,
-		Stack:           llmOffer.Stack,
-		ExpectedProfile: llmOffer.ExpectedProfile,
-		Miscellaneous:   llmOffer.Miscellaneous,
+		Title:           parsedOffer.Title,
+		Organization:    parsedOffer.Organization,
+		Missions:        parsedOffer.Missions,
+		Stack:           parsedOffer.Stack,
+		ExpectedProfile: parsedOffer.ExpectedProfile,
+		Miscellaneous:   parsedOffer.Miscellaneous,
 		UserID:          userID,
 	}
 	// Map optional string field (OrganizationDescription) from *string to sql.NullString
-	if llmOffer.OrganizationDescription != nil {
-		dbParams.OrganizationDescription = sql.NullString{String: *llmOffer.OrganizationDescription, Valid: true}
+	if parsedOffer.OrganizationDescription != nil {
+		dbParams.OrganizationDescription = sql.NullString{String: *parsedOffer.OrganizationDescription, Valid: true}
 	} else {
 		dbParams.OrganizationDescription = sql.NullString{Valid: false}
 	}
