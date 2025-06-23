@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 )
@@ -27,12 +26,12 @@ type ResponseFormat struct {
 }
 type mistralGenerateParams struct {
 	Model          string         `json:"model"`
-	Temperature    float64        `json:"temperature"`
-	TopP           int            `json:"top_p"`
-	MaxTokens      int            `json:"max_tokens"`
+	Temperature    float64        `json:"temperature,omitempty"`
+	TopP           int            `json:"top_p,omitempty"`
+	MaxTokens      int            `json:"max_tokens,omitempty"`
 	Stream         bool           `json:"stream"`
-	Stop           string         `json:"stop"`
-	RandomSeed     int            `json:"random_seed"`
+	Stop           string         `json:"stop,omitempty"`
+	RandomSeed     int            `json:"random_seed,omitempty"`
 	Messages       []Message      `json:"messages"`
 	ResponseFormat ResponseFormat `json:"response_format"`
 	Tools          []struct {
@@ -44,18 +43,18 @@ type mistralGenerateParams struct {
 			Parameters  struct {
 			} `json:"parameters"`
 		} `json:"function"`
-	} `json:"tools"`
-	ToolChoice       string `json:"tool_choice"`
-	PresencePenalty  int    `json:"presence_penalty"`
-	FrequencyPenalty int    `json:"frequency_penalty"`
-	N                int    `json:"n"`
-	Prediction       struct {
+	} `json:"tools,omitempty"`
+	ToolChoice       string    `json:"tool_choice,omitempty"`
+	PresencePenalty  int       `json:"presence_penalty,omitempty"`
+	FrequencyPenalty int       `json:"frequency_penalty,omitempty"`
+	N                int       `json:"n,omitempty"`
+	Prediction       *struct { // Change to pointer type -> zero value will always be ommited
 		Type    string `json:"type"`
 		Content string `json:"content"`
-	} `json:"prediction"`
-	ParallelToolCalls bool   `json:"parallel_tool_calls"`
-	PromptMode        string `json:"prompt_mode"`
-	SafePrompt        bool   `json:"safe_prompt"`
+	} `json:"prediction,omitempty"`
+	ParallelToolCalls bool   `json:"parallel_tool_calls,omitempty"`
+	PromptMode        string `json:"prompt_mode,omitempty"`
+	SafePrompt        bool   `json:"safe_prompt,omitempty"`
 }
 
 type mistralGenerateResponse struct {
@@ -139,6 +138,7 @@ func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (G
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {
@@ -146,11 +146,18 @@ func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (G
 	}
 	defer res.Body.Close()
 
+	//	body, err := io.ReadAll(res.Body)
+	//	if err != nil {
+	//		return GenerateResponse{}, fmt.Errorf("error reading response body: %w", err)
+	////////	}
+	////////
+	//////	log.Println("Response Status:", res.Status)
+	//////	log.Println("Response Body:", string(body))
+	//////
 	var mistralResponse mistralGenerateResponse
 
 	decoder := json.NewDecoder(res.Body)
 	err = decoder.Decode(&mistralResponse)
-	log.Println("ERR FRERE", err)
 	if err != nil {
 		return GenerateResponse{}, err
 	}

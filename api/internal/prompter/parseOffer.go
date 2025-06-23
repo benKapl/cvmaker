@@ -49,7 +49,7 @@ var (
 			"expected_profile",
 		},
 	}
-	offerPromptStart = "Extract the following information from the job offer provided below and return it as a JSON object:\n\n- title (required)\n- organization (required) - the name of the postee\n- organization_description\n- missions (required)\n- stack\n- expected_profile (required)\n- miscellaneous\n\nEnsure the output is a valid JSON object matching the specified structure. Place any extra information not fitting the specific fields into the miscellaneous field, such information includes but are not limited to: office location, salary and advantages, corporate culture and so on. It's best to add too much than not enough, but do not invent.\n\nJob Offer:\n\"\"\"\n"
+	offerPromptStart = "Extract the following information from the job offer provided below and return it as a JSON object:\n\n- title (required)\n- organization (required) - the name of the postee\n- organization_description\n- missions (required) - a list of tasks and responsibilities.\n- stack - a list of technologies.\n- expected_profile (required) - a list of required skills, experience, and qualifications. Break down sentences into separate points in the list.\n- miscellaneous - a list of all other information. Each piece of information should be a separate string in the list. For example: [\"Location: Paris, France\", \"Salary: 45000 euros per year\", \"Remote work: Accepted\"]\n\nJob Offer:\n\"\"\"\n"
 	offerPromptEnd   = "\n\"\"\"\n\nJSON Output:"
 )
 

@@ -32,8 +32,8 @@ func Load() (*Config, error) {
 	}
 
 	cfg := Config{
-		DevLLMTimeout:  10 * time.Second,
-		ProdLLMTimeout: 30 * time.Second,
+		DevLLMTimeout:  30 * time.Second,
+		ProdLLMTimeout: 10 * time.Second,
 	}
 
 	dbUser := os.Getenv("DB_USER")
@@ -66,7 +66,7 @@ func Load() (*Config, error) {
 	if devLLMTimeoutStr != "" {
 		seconds, err := strconv.Atoi(devLLMTimeoutStr)
 		if err == nil {
-			cfg.ProdLLMTimeout = time.Duration(seconds) * time.Second
+			cfg.DevLLMTimeout = time.Duration(seconds) * time.Second
 		} else {
 			log.Printf("Warning: Invalid LLM_TIMEOUT_SECONDS value '%s', using default %v\n", devLLMTimeoutStr, cfg.DevLLMTimeout)
 		}
@@ -111,7 +111,7 @@ func Load() (*Config, error) {
 
 func GetLLMClient(cfg *Config) llm.LLMClient {
 	if cfg.Platform == "dev" {
-		return llm.NewOllamaClient(cfg.DevLLMUrl, cfg.ProdLLMTimeout)
+		return llm.NewOllamaClient(cfg.DevLLMUrl, cfg.DevLLMTimeout)
 	}
 	return llm.NewMistralClient(cfg.ProdLLMUrl, cfg.ProdLLMApiKey, cfg.ProdLLMTimeout)
 }
