@@ -1,11 +1,14 @@
-package llm
+package prompter
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+
+	"github.com/benKapl/cvmaker-api/internal/llm"
 )
 
-type LLMOffer struct {
+type ParsedOffer struct {
 	Title                   string   `json:"title"`
 	Organization            string   `json:"organization"`
 	OrganizationDescription *string  `json:"organization_description,omitempty"`
@@ -46,32 +49,33 @@ var (
 			"expected_profile",
 		},
 	}
-	offerPromptStart = "Extract the following information from the job offer provided below and return it as a JSON object:\n\n- title (required)\n- organization (required) - the name of the postee\n- organization_description\n- missions (required)\n- stack\n- expected_profile (required)\n- miscellaneous\n\nEnsure the output is a valid JSON object matching the specified structure. Place any extra information not fitting the specific fields into the miscellaneous field, such information includes but are not limited to: office location, salary and advantages, corporate culture and so on. It's best to add too much than not enough, but do not invent.\n\nJob Offer:\n\"\"\"\n"
+	offerPromptStart = "Extract the following information from the job offer provided below and return it as a JSON object:\n\n- title (required)\n- organization (required) - the name of the postee\n- organization_description\n- missions (required) - a list of tasks and responsibilities.\n- stack - a list of technologies.\n- expected_profile (required) - a list of required skills, experience, and qualifications. Break down sentences into separate points in the list.\n- miscellaneous - a list of all other information. Each piece of information should be a separate string in the list. For example: [\"Location: Paris, France\", \"Salary: 45000 euros per year\", \"Remote work: Accepted\"]\n\nJob Offer:\n\"\"\"\n"
 	offerPromptEnd   = "\n\"\"\"\n\nJSON Output:"
 )
 
-// Call the LLM generation endpoint to parse a job offer into a specific format
-// Decodes the response into a strongly type LLMOffer and returns it
-func (c *Client) ParseOffer(rawOffer string) (LLMOffer, error) {
-
+func ParseOffer(ctx context.Context, rawOffer string, llmClient llm.LLMClient) (ParsedOffer, error) {
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
-	generateResponse, err := c.generate(prompt, offerFormat)
+	params := &llm.GenerateParams{
+		Prompt: prompt,
+		Format: offerFormat,
+		Stream: false,
+	}
+
+	response, err := llmClient.Generate(ctx, params)
 	if err != nil {
-		return LLMOffer{}, fmt.Errorf("LLM generation failed: %w", err)
+		return ParsedOffer{}, fmt.Errorf("LLM generation failed: %w", err)
 	}
 
-	formattedOffer := generateResponse.Response
-	if formattedOffer == "" {
-		return LLMOffer{}, fmt.Errorf("LLM Response is empty")
+	parsedOffer := response.Content
+	if parsedOffer == "" {
+		return ParsedOffer{}, fmt.Errorf("LLM response is empty: %w", err)
 	}
 
-	var offer LLMOffer
-	err = json.Unmarshal([]byte(formattedOffer), &offer)
+	var offer ParsedOffer
+	err = json.Unmarshal([]byte(parsedOffer), &offer)
 	if err != nil {
-		return LLMOffer{}, fmt.Errorf("failed to unmarshal LLM response into LLMOffer: %w. JSON data: %s", err, formattedOffer)
+		return ParsedOffer{}, fmt.Errorf("failed to unmarshal LLM response into ParsedOffer: %w. JSON data: %s", err, parsedOffer)
 	}
-
-	fmt.Println(offer.Miscellaneous)
 
 	// Handle missing required values
 	if offer.Title == "" {

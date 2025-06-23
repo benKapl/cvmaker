@@ -2,18 +2,20 @@ package llm
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
 
-type GenerateParams struct {
-	Model  string                 `json:"model"`
-	Prompt string                 `json:"prompt"`
-	Format map[string]interface{} `json:"format,omitempty"`
-	Stream bool                   `json:"stream"`
+type ollamaGenerateParams struct {
+	Model  string         `json:"model"`
+	Prompt string         `json:"prompt"`
+	Format map[string]any `json:"format,omitempty"`
+	Stream bool           `json:"stream"`
 }
-type GenerateResponse struct {
+type ollamaGenerateResponse struct {
 	Model              string    `json:"model"`
 	CreatedAt          time.Time `json:"created_at"`
 	Response           string    `json:"response"`
@@ -28,17 +30,34 @@ type GenerateResponse struct {
 	EvalDuration       int64     `json:"eval_duration"`
 }
 
-func (c *Client) generate(prompt string, format map[string]interface{}) (GenerateResponse, error) {
+type OllamaClient struct {
+	baseClient
+	model string
+}
+
+func NewOllamaClient(url string, timeout time.Duration) *OllamaClient {
+	baseClient := newBaseClient(url, "", timeout)
+	return &OllamaClient{
+		baseClient: baseClient,
+		model:      "mistral", // TO BE REFACTOR AS CONFIG PARAMETER !
+	}
+}
+
+func (c *OllamaClient) String() string {
+	return fmt.Sprintf("OllamaClient (model: %s)", c.model)
+}
+
+func (c *OllamaClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
 	url := c.baseUrl + "/api/generate"
 
-	params := GenerateParams{
-		Prompt: prompt,
-		Model:  c.llmConfig.model,
-		Format: format,
-		Stream: c.llmConfig.isStreamed,
+	ollamaParams := &ollamaGenerateParams{
+		Model:  c.model,
+		Prompt: params.Prompt,
+		Format: params.Format,
+		Stream: params.Stream,
 	}
 
-	jsonData, err := json.Marshal(params)
+	jsonData, err := json.Marshal(*ollamaParams)
 	if err != nil {
 		return GenerateResponse{}, err
 	}
@@ -56,12 +75,16 @@ func (c *Client) generate(prompt string, format map[string]interface{}) (Generat
 	}
 	defer res.Body.Close()
 
-	var response GenerateResponse
+	var ollamaResponse ollamaGenerateResponse
 
 	decoder := json.NewDecoder(res.Body)
-	err = decoder.Decode(&response)
+	err = decoder.Decode(&ollamaResponse)
 	if err != nil {
 		return GenerateResponse{}, err
+	}
+
+	response := GenerateResponse{
+		Content: ollamaResponse.Response,
 	}
 
 	return response, nil
