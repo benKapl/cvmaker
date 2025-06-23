@@ -8,15 +8,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/benKapl/cvmaker-api/internal/llm"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DBURL      string
-	Platform   string
-	JWTSecret  string
-	Port       string
-	LLMTimeout time.Duration
+	DBURL          string
+	Platform       string
+	JWTSecret      string
+	Port           string
+	DevLLMUrl      string
+	ProdLLMUrl     string
+	DevLLMTimeout  time.Duration
+	ProdLLMTimeout time.Duration
+	ProdLLMApiKey  string
 }
 
 // Load reads configuration from environment variables (.env file is supported)
@@ -27,7 +32,8 @@ func Load() (*Config, error) {
 	}
 
 	cfg := Config{
-		LLMTimeout: 120 * time.Second, // Default LLM timeout
+		DevLLMTimeout:  30 * time.Second,
+		ProdLLMTimeout: 10 * time.Second,
 	}
 
 	dbUser := os.Getenv("DB_USER")
@@ -55,15 +61,27 @@ func Load() (*Config, error) {
 	cfg.Platform = os.Getenv("PLATFORM")
 	cfg.JWTSecret = os.Getenv("JWT_SECRET")
 	cfg.Port = os.Getenv("PORT")
-	llmTimeoutStr := os.Getenv("LLM_TIMEOUT_SECONDS")
-	if llmTimeoutStr != "" {
-		seconds, err := strconv.Atoi(llmTimeoutStr)
+	cfg.DevLLMUrl = os.Getenv("DEV_LLM_URL")
+	devLLMTimeoutStr := os.Getenv("DEV_LLM_TIMEOUT_SECONDS")
+	if devLLMTimeoutStr != "" {
+		seconds, err := strconv.Atoi(devLLMTimeoutStr)
 		if err == nil {
-			cfg.LLMTimeout = time.Duration(seconds) * time.Second
+			cfg.DevLLMTimeout = time.Duration(seconds) * time.Second
 		} else {
-			log.Printf("Warning: Invalid LLM_TIMEOUT_SECONDS value '%s', using default %v\n", llmTimeoutStr, cfg.LLMTimeout)
+			log.Printf("Warning: Invalid LLM_TIMEOUT_SECONDS value '%s', using default %v\n", devLLMTimeoutStr, cfg.DevLLMTimeout)
 		}
 	}
+	cfg.ProdLLMUrl = os.Getenv("PROD_LLM_URL")
+	prodLLMTimeoutStr := os.Getenv("PROD_LLM_TIMEOUT_SECONDS")
+	if prodLLMTimeoutStr != "" {
+		seconds, err := strconv.Atoi(prodLLMTimeoutStr)
+		if err == nil {
+			cfg.ProdLLMTimeout = time.Duration(seconds) * time.Second
+		} else {
+			log.Printf("Warning: Invalid PROD_LLM_TIMEOUT_SECONDS value '%s', using default %v\n", prodLLMTimeoutStr, cfg.ProdLLMTimeout)
+		}
+	}
+	cfg.ProdLLMApiKey = os.Getenv("PROD_LLM_API_KEY")
 
 	if cfg.DBURL == "" {
 		return nil, errors.New("DB_URL must be set")
@@ -77,7 +95,23 @@ func Load() (*Config, error) {
 	if cfg.Port == "" {
 		return nil, errors.New("PORT must be set")
 	}
+	if cfg.DevLLMUrl == "" {
+		return nil, errors.New("DEV_LLM_URL must be set")
+	}
+	if cfg.ProdLLMUrl == "" {
+		return nil, errors.New("PROD_LLM_URL must be set")
+	}
+	if cfg.ProdLLMApiKey == "" {
+		return nil, errors.New("PROD_LLM_API_KEY must be set")
+	}
 
 	log.Printf("Configuration loaded successfully (Environment: %s)", cfg.Platform)
 	return &cfg, nil
+}
+
+func GetLLMClient(cfg *Config) llm.LLMClient {
+	if cfg.Platform == "dev" {
+		return llm.NewOllamaClient(cfg.DevLLMUrl, cfg.DevLLMTimeout)
+	}
+	return llm.NewMistralClient(cfg.ProdLLMUrl, cfg.ProdLLMApiKey, cfg.ProdLLMTimeout)
 }
