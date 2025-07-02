@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
-	"time"
 
-	"github.com/benKapl/cvmaker-api/internal/auth"
-	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/services"
 )
 
 func (a *API) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -30,48 +29,24 @@ func (a *API) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.DB.GetUser(r.Context(), params.Email)
+	loginResponse, err := a.AuthService.Login(r.Context(), params.Email, params.Password)
 	if err != nil {
-		respond.WithError(w, http.StatusUnauthorized, "Incorrect Email or Password", err)
-		return
-	}
-
-	err = auth.CheckPasswordHash(params.Password, user.Password)
-	if err != nil {
-		respond.WithError(w, http.StatusUnauthorized, "Incorrect Email or Password", err)
-		return
-	}
-
-	accessToken, err := auth.MakeJWT(user.ID, a.JWTSecret, time.Hour)
-	if err != nil {
-		respond.WithError(w, http.StatusInternalServerError, "Couldn't make JWT", err)
-		return
-	}
-
-	refreshToken, err := auth.MakeRefreshToken()
-	if err != nil {
-		respond.WithError(w, http.StatusInternalServerError, "Couldn't make refresh token", err)
-		return
-	}
-
-	_, err = a.DB.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
-		Token:     refreshToken,
-		UserID:    user.ID,
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
-	})
-	if err != nil {
-		respond.WithError(w, http.StatusInternalServerError, "Couldn't save refresh token", err)
+		if errors.Is(err, services.ErrInvalidCredentials) {
+			respond.WithError(w, http.StatusUnauthorized, "Incorrect Email or Password", err)
+			return
+		}
+		respond.WithError(w, http.StatusInternalServerError, "Failed to log in", err)
 		return
 	}
 
 	respond.WithJSON(w, http.StatusCreated, response{
 		User: User{
-			ID:        user.ID,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			Email:     user.Email,
+			ID:        loginResponse.User.ID,
+			CreatedAt: loginResponse.User.CreatedAt,
+			UpdatedAt: loginResponse.User.UpdatedAt,
+			Email:     loginResponse.User.Email,
 		},
-		Token:        accessToken,
-		RefreshToken: refreshToken,
+		Token:        loginResponse.AccessToken,
+		RefreshToken: loginResponse.RefreshToken,
 	})
 }

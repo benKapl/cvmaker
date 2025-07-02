@@ -37,9 +37,10 @@ func main() {
 	llmClient := config.GetLLMClient(cfg)
 	log.Println("LLMClient: ", llmClient.String())
 
+	authSrv := services.NewAuthService(dbQueries, cfg.JWTSecret)
 	offerSrv := services.NewOfferService(dbQueries, llmClient)
 
-	api := handlers.NewAPI(dbQueries, llmClient, cfg.JWTSecret, cfg.Platform, offerSrv)
+	api := handlers.NewAPI(dbQueries, cfg.JWTSecret, cfg.Platform, authSrv, offerSrv)
 
 	// Setup router and routes
 	mux := http.NewServeMux()
