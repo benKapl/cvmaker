@@ -29,6 +29,8 @@ func (a *API) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -69,6 +71,8 @@ func (a *API) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {

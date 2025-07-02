@@ -26,7 +26,7 @@ type Offer struct {
 
 func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Body string `json:"body"`
+		Offer string `json:"offer"`
 	}
 
 	type response struct {
@@ -41,6 +41,8 @@ func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	var params parameters
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -48,7 +50,7 @@ func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbOffer, err := a.OfferService.CreateOffer(r.Context(), userID, params.Body)
+	dbOffer, err := a.OfferService.CreateOffer(r.Context(), userID, params.Offer)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Couldn't create offer", err)
 		return
