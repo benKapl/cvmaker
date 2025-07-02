@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/benKapl/cvmaker-api/internal/database"
-	"github.com/benKapl/cvmaker-api/internal/prompter"
 	"github.com/benKapl/cvmaker-api/internal/respond"
 	"github.com/google/uuid"
 )
@@ -50,31 +48,7 @@ func (a *API) handlerOffersCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call the service ParseOffer from the prompter package
-	parsedOffer, err := prompter.ParseOffer(r.Context(), params.Body, a.LLMClient)
-	if err != nil {
-		respond.WithError(w, http.StatusInternalServerError, "Couldn't parse offer", err)
-		return
-	}
-
-	dbParams := database.CreateOfferParams{
-		Title:           parsedOffer.Title,
-		Organization:    parsedOffer.Organization,
-		Missions:        parsedOffer.Missions,
-		Stack:           parsedOffer.Stack,
-		ExpectedProfile: parsedOffer.ExpectedProfile,
-		Miscellaneous:   parsedOffer.Miscellaneous,
-		UserID:          userID,
-	}
-	// Map optional string field (OrganizationDescription) from *string to sql.NullString
-	if parsedOffer.OrganizationDescription != nil {
-		dbParams.OrganizationDescription = sql.NullString{String: *parsedOffer.OrganizationDescription, Valid: true}
-	} else {
-		dbParams.OrganizationDescription = sql.NullString{Valid: false}
-	}
-
-	// Create offer in database
-	dbOffer, err := a.DB.CreateOffer(r.Context(), dbParams)
+	dbOffer, err := a.OfferService.CreateOffer(r.Context(), userID, params.Body)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Couldn't create offer", err)
 		return

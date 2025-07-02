@@ -16,6 +16,13 @@ type OfferService struct {
 	LLMClient llm.LLMClient
 }
 
+func NewOfferService(db *database.Queries, llmClient llm.LLMClient) *OfferService {
+	return &OfferService{
+		DB:        db,
+		LLMClient: llmClient,
+	}
+}
+
 func (s *OfferService) CreateOffer(ctx context.Context, userID uuid.UUID, rawOffer string) (database.Offer, error) {
 	parsedOffer, err := prompter.ParseOffer(ctx, rawOffer, s.LLMClient)
 	if err != nil {
