@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/benKapl/cvmaker-api/internal/auth"
 	"github.com/benKapl/cvmaker-api/internal/database"
+	"github.com/lib/pq"
 )
 
 type AuthService struct {
@@ -28,8 +30,36 @@ type LoginResponse struct {
 	RefreshToken string
 }
 
-var ErrInvalidCredentials = errors.New("invalid credentials")
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrDuplicateKey       = errors.New("user already exists")
+)
 
+// Create user in database
+func (s *AuthService) CreateUser(ctx context.Context, email, password string) (database.User, error) {
+	hash, err := auth.HashPassword(password)
+	if err != nil {
+		return database.User{}, fmt.Errorf("couldn't hash password: %w", err)
+	}
+
+	user, err := s.DB.CreateUser(ctx, database.CreateUserParams{
+		Email:    strings.ToLower(email),
+		Password: hash,
+	})
+
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23505" {
+				return database.User{}, ErrDuplicateKey
+			}
+		}
+		return database.User{}, fmt.Errorf("couldn't create user: %w", err)
+	}
+
+	return user, nil
+}
+
+// Authenticate user
 func (s *AuthService) Login(ctx context.Context, email, password string) (LoginResponse, error) {
 
 	user, err := s.DB.GetUser(ctx, email)

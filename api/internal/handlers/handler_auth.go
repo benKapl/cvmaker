@@ -4,10 +4,57 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/benKapl/cvmaker-api/internal/respond"
 	"github.com/benKapl/cvmaker-api/internal/services"
+	"github.com/google/uuid"
 )
+
+type User struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Email     string    `json:"email"`
+}
+
+func (a *API) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	type response struct {
+		User
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		return
+	}
+
+	user, err := a.AuthService.CreateUser(r.Context(), params.Email, params.Password)
+	if err != nil {
+		if errors.Is(err, services.ErrDuplicateKey) {
+			respond.WithError(w, http.StatusBadRequest, "Duplicate key found", err)
+			return
+		}
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't create user", err)
+		return
+	}
+
+	respond.WithJSON(w, http.StatusCreated, response{
+		User: User{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Email:     user.Email,
+		},
+	})
+}
 
 func (a *API) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
