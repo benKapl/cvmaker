@@ -40,7 +40,7 @@ func main() {
 	authSrv := services.NewAuthService(dbQueries, cfg.JWTSecret)
 	offerSrv := services.NewOfferService(dbQueries, llmClient)
 
-	api := handlers.NewAPI(dbQueries, cfg.JWTSecret, cfg.Platform, authSrv, offerSrv)
+	api := handlers.NewAPI(dbQueries, cfg.Platform, authSrv, offerSrv)
 
 	// Setup router and routes
 	mux := http.NewServeMux()

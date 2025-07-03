@@ -25,9 +25,8 @@ func (a *API) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := auth.MakeJWT(
+	accessToken, err := a.AuthService.MakeJWT(
 		user.ID,
-		a.JWTSecret,
 		time.Hour,
 	)
 	if err != nil {

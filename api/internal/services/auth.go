@@ -9,6 +9,7 @@ import (
 
 	"github.com/benKapl/cvmaker-api/internal/auth"
 	"github.com/benKapl/cvmaker-api/internal/database"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -96,4 +97,12 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (LoginR
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func (s *AuthService) ValidateJWT(tokenString string) (uuid.UUID, error) {
+	return auth.ValidateJWT(tokenString, s.JWTSecret)
+}
+
+func (s *AuthService) MakeJWT(userID uuid.UUID, expiresIn time.Duration) (string, error) {
+	return auth.MakeJWT(userID, s.JWTSecret, expiresIn)
 }
