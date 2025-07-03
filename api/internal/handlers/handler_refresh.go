@@ -19,16 +19,7 @@ func (a *API) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.DB.GetUserFromRefreshToken(r.Context(), refreshToken)
-	if err != nil {
-		respond.WithError(w, http.StatusUnauthorized, "Couldn't get user for refresh token", err)
-		return
-	}
-
-	accessToken, err := a.AuthService.MakeJWT(
-		user.ID,
-		time.Hour,
-	)
+	accessToken, err := a.AuthService.RefreshJWT(r.Context(), refreshToken, time.Hour)
 	if err != nil {
 		respond.WithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 		return

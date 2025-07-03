@@ -103,6 +103,21 @@ func (s *AuthService) ValidateJWT(tokenString string) (uuid.UUID, error) {
 	return auth.ValidateJWT(tokenString, s.JWTSecret)
 }
 
-func (s *AuthService) MakeJWT(userID uuid.UUID, expiresIn time.Duration) (string, error) {
-	return auth.MakeJWT(userID, s.JWTSecret, expiresIn)
+func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string, expiresIn time.Duration) (string, error) {
+	user, err := s.DB.GetUserFromRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return "", fmt.Errorf("couldn't get user for refresh token: %w", err)
+	}
+
+	accessToken, err := auth.MakeJWT(
+		user.ID,
+		s.JWTSecret,
+		time.Hour,
+	)
+	if err != nil {
+		return "", fmt.Errorf("couldn't validate JWT: %w", err)
+	}
+
+	return accessToken, nil
+
 }
