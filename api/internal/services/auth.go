@@ -34,6 +34,7 @@ type LoginResponse struct {
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrDuplicateKey       = errors.New("element already exists")
+	ErrMissingField       = errors.New("missing required field")
 )
 
 // Create user in database

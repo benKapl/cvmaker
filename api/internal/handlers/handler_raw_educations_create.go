@@ -26,9 +26,9 @@ type Education struct {
 
 func (a *API) handlerRawEducationsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Label       string     `json:"label"`
-		School      string     `json:"school"`
-		Description string     `json:"description"`
+		Label       *string    `json:"label"`
+		School      *string    `json:"school"`
+		Description *string    `json:"description"`
 		StartDate   *time.Time `json:"start_date"`
 		EndDate     time.Time  `json:"end_date,omitempty"`
 	}
@@ -55,15 +55,27 @@ func (a *API) handlerRawEducationsCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if params.StartDate == nil {
-		respond.WithError(w, http.StatusBadRequest, "start_date is a required field", nil)
+		respond.WithError(w, http.StatusBadRequest, "start_date is a required field", services.ErrMissingField)
+		return
+	}
+	if params.Label == nil || *params.Label == "" {
+		respond.WithError(w, http.StatusBadRequest, "label is a required field", services.ErrMissingField)
+		return
+	}
+	if params.School == nil || *params.School == "" {
+		respond.WithError(w, http.StatusBadRequest, "school is a required field", services.ErrMissingField)
+		return
+	}
+	if params.Description == nil || *params.Description == "" {
+		respond.WithError(w, http.StatusBadRequest, "description is a required field", services.ErrMissingField)
 		return
 	}
 
 	rawEducation, err := a.ProfileService.CreateRawEducation(r.Context(), userID, services.CreateRawEducationParams{
-		Label:       params.Label,
-		School:      params.School,
-		Description: params.Description,
-		StartDate:   *params.StartDate,
+		Label:       *params.Label,
+		School:      *params.School,
+		Description: *params.Description,
+		StartDate:   params.StartDate,
 		EndDate:     params.EndDate,
 	})
 	if err != nil {

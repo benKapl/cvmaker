@@ -3,14 +3,13 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/services"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type Experience struct {
@@ -28,18 +27,17 @@ type Experience struct {
 
 func (a *API) handlerRawExperiencesCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Title        string    `json:"title"`
-		Organization string    `json:"organization"`
-		Description  string    `json:"description"`
-		Stacks       []string  `json:"stacks,omitempty"`
-		StartDate    time.Time `json:"start_date"`
-		EndDate      time.Time `json:"end_date"`
-		UserID       uuid.UUID `json:"user_id"`
+		Title        *string    `json:"title"`
+		Organization *string    `json:"organization"`
+		Description  *string    `json:"description"`
+		Stacks       []string   `json:"stacks,omitempty"`
+		StartDate    *time.Time `json:"start_date"`
+		EndDate      time.Time  `json:"end_date,omitempty"`
 	}
 
 	type response struct {
-		Success    bool `json:"success"`
-		Experience Experience
+		Success    bool       `json:"success"`
+		Experience Experience `json:"experience"`
 	}
 
 	userID, ok := r.Context().Value(userIDKey).(uuid.UUID)
@@ -51,96 +49,71 @@ func (a *API) handlerRawExperiencesCreate(w http.ResponseWriter, r *http.Request
 	var params parameters
 
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	err := decoder.Decode(&params)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
-
-	var endDate sql.NullTime
-	if params.EndDate.IsZero() {
-		endDate = sql.NullTime{Valid: false}
-	} else {
-		endDate = sql.NullTime{Time: params.EndDate, Valid: true}
+	if params.StartDate == nil {
+		respond.WithError(w, http.StatusBadRequest, "start_date is a required field", services.ErrMissingField)
+		return
 	}
-
-	// Create dbExp in database
-	dbExp, err := a.DB.CreateRawExperience(r.Context(), database.CreateRawExperienceParams{
-		Title:        strings.ToLower(params.Title),
-		Organization: strings.ToLower(params.Organization),
-		Description:  strings.ToLower(params.Description),
-		StartDate:    params.StartDate,
-		EndDate:      endDate,
-		UserID:       userID,
-	})
-
-	if err != nil {
-		pqErr, ok := err.(*pq.Error)
-		if ok {
-			if pqErr.Code == "23505" { // Duplicate Key error
-				respond.WithError(w, http.StatusBadRequest, "User's raw experience already exists", err)
-				return
-			}
-		}
-		respond.WithError(w, http.StatusInternalServerError, "Could not create raw experience", err)
+	if params.Title == nil || *params.Title == "" {
+		respond.WithError(w, http.StatusBadRequest, "title is a required field", services.ErrMissingField)
+		return
+	}
+	if params.Organization == nil || *params.Organization == "" {
+		respond.WithError(w, http.StatusBadRequest, "organization is a required field", services.ErrMissingField)
+		return
+	}
+	if params.Description == nil || *params.Description == "" {
+		respond.WithError(w, http.StatusBadRequest, "description is a required field", services.ErrMissingField)
 		return
 	}
 
-	// Manage stack retrieval and creation in pivot table
-	var stacks []Stack
-
-	if len(params.Stacks) > 0 {
-		for _, stack := range params.Stacks {
-			// Get stack in db
-			dbStack, err := a.DB.GetRawStackByLabel(r.Context(), database.GetRawStackByLabelParams{
-				Label:  strings.ToLower(stack),
-				UserID: userID,
-			})
-			if err != sql.ErrNoRows && err != nil {
-				respond.WithError(w, http.StatusInternalServerError, "Could not get raw stack but should have been able to", err)
-				return
-			}
-
-			// if stack does not exist, create it
-			if err == sql.ErrNoRows {
-				dbStack, err = a.DB.CreateRawStack(r.Context(), database.CreateRawStackParams{
-					Label:  strings.ToLower(stack),
-					UserID: userID,
-				})
-				if err != nil {
-					respond.WithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
-					return
-				}
-			}
-
-			// Link stack to experience
-			_, err = a.DB.CreateRawExperienceStack(r.Context(), database.CreateRawExperienceStackParams{
-				ExperienceID: dbExp.ID,
-				StackID:      dbStack.ID,
-			})
-			if err != nil {
-				respond.WithError(w, http.StatusInternalServerError, "Could not create raw experience_stack", err)
-				return
-			}
-
-			// If all went well, convert dbStack to stack and append it to stack list
-			stacks = append(stacks, dbRawStackToStack(dbStack))
+	rawExperience, rawStacks, err := a.ProfileService.CreateRawExperience(r.Context(), userID, services.CreateRawExperienceParams{
+		Title:        *params.Title,
+		Organization: *params.Organization,
+		Description:  *params.Description,
+		Stacks:       params.Stacks,
+		StartDate:    params.StartDate,
+		EndDate:      params.EndDate,
+	})
+	if err != nil {
+		if errors.Is(err, services.ErrDuplicateKey) {
+			respond.WithError(w, http.StatusBadRequest, "Duplicate key found", err)
+			return
 		}
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't create rawExperience", err)
+		return
+	}
+
+	var stacks []Stack
+	for _, rawStack := range rawStacks {
+		stacks = append(stacks, Stack{
+			Id:        rawStack.ID,
+			CreatedAt: rawStack.CreatedAt,
+			UpdatedAt: rawStack.UpdatedAt,
+			Label:     rawStack.Label,
+			UserID:    rawStack.UserID,
+		})
 	}
 
 	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Experience: Experience{
-			Id:           dbExp.ID,
-			CreatedAt:    dbExp.CreatedAt,
-			UpdatedAt:    dbExp.UpdatedAt,
-			Title:        dbExp.Title,
-			Organization: dbExp.Organization,
-			Description:  dbExp.Description,
+			Id:           rawExperience.ID,
+			CreatedAt:    rawExperience.CreatedAt,
+			UpdatedAt:    rawExperience.UpdatedAt,
+			Title:        rawExperience.Title,
+			Organization: rawExperience.Organization,
+			Description:  rawExperience.Description,
 			Stacks:       stacks,
-			StartDate:    dbExp.StartDate,
-			EndDate:      dbExp.EndDate,
-			UserID:       dbExp.UserID,
+			StartDate:    rawExperience.StartDate,
+			EndDate:      rawExperience.EndDate,
+			UserID:       rawExperience.UserID,
 		},
 	})
 }
