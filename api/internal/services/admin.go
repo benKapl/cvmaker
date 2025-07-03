@@ -1,6 +1,10 @@
 package services
 
-import "github.com/benKapl/cvmaker-api/internal/database"
+import (
+	"context"
+
+	"github.com/benKapl/cvmaker-api/internal/database"
+)
 
 type AdminService struct {
 	DB       *database.Queries
@@ -14,6 +18,11 @@ func NewAdminService(db *database.Queries, platform string) *AdminService {
 	}
 }
 
-func (s *AdminService) ResetDatabase() string {
-	return s.Platform
+func (s *AdminService) ResetDatabase(ctx context.Context) error {
+	err := s.DB.DeleteUsers(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

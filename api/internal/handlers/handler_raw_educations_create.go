@@ -3,14 +3,13 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/services"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type Education struct {
@@ -54,46 +53,34 @@ func (a *API) handlerRawEducationsCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var endDate sql.NullTime
-	if params.EndDate.IsZero() {
-		endDate = sql.NullTime{Valid: false}
-	} else {
-		endDate = sql.NullTime{Time: params.EndDate, Valid: true}
-	}
-
-	dbEducation, err := a.DB.CreateRawEducation(r.Context(), database.CreateRawEducationParams{
-		Label:       strings.ToLower(params.Label),
-		School:      strings.ToLower(params.School),
-		Description: strings.ToLower(params.Description),
+	rawEducation, err := a.ProfileService.CreateRawEducation(r.Context(), userID, services.CreateRawEducationParams{
+		Label:       params.Label,
+		School:      params.School,
+		Description: params.Description,
 		StartDate:   params.StartDate,
-		EndDate:     endDate,
-		UserID:      userID,
+		EndDate:     params.EndDate,
 	})
-
 	if err != nil {
-		pqErr, ok := err.(*pq.Error)
-		if ok {
-			if pqErr.Code == "23505" { // Duplicate Key error
-				respond.WithError(w, http.StatusBadRequest, "User's raw education already exists", err)
-				return
-			}
+		if errors.Is(err, services.ErrDuplicateKey) {
+			respond.WithError(w, http.StatusBadRequest, "Duplicate key found", err)
+			return
 		}
-		respond.WithError(w, http.StatusInternalServerError, "Could not create raw education", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't create rawEducation", err)
 		return
 	}
 
 	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Education: Education{
-			Id:          dbEducation.ID,
-			CreatedAt:   dbEducation.CreatedAt,
-			UpdatedAt:   dbEducation.UpdatedAt,
-			Label:       dbEducation.Label,
-			School:      dbEducation.School,
-			Description: dbEducation.Description,
-			StartDate:   dbEducation.StartDate,
-			EndDate:     dbEducation.EndDate,
-			UserID:      dbEducation.UserID,
+			Id:          rawEducation.ID,
+			CreatedAt:   rawEducation.CreatedAt,
+			UpdatedAt:   rawEducation.UpdatedAt,
+			Label:       rawEducation.Label,
+			School:      rawEducation.School,
+			Description: rawEducation.Description,
+			StartDate:   rawEducation.StartDate,
+			EndDate:     rawEducation.EndDate,
+			UserID:      rawEducation.UserID,
 		},
 	})
 }

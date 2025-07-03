@@ -6,17 +6,19 @@ import (
 )
 
 type API struct {
-	DB           *database.Queries
-	Platform     string
-	AuthService  *services.AuthService
-	OfferService *services.OfferService
+	DB             *database.Queries
+	AdminService   *services.AdminService
+	AuthService    *services.AuthService
+	OfferService   *services.OfferService
+	ProfileService *services.ProfileService
 }
 
-func NewAPI(db *database.Queries, platform string, authSrv *services.AuthService, offerSrv *services.OfferService) *API {
+func NewAPI(db *database.Queries, adminSrv *services.AdminService, authSrv *services.AuthService, offerSrv *services.OfferService, profileSrv *services.ProfileService) *API {
 	return &API{
-		DB:           db,
-		Platform:     platform,
-		AuthService:  authSrv,
-		OfferService: offerSrv,
+		DB:             db,
+		AdminService:   adminSrv,
+		AuthService:    authSrv,
+		OfferService:   offerSrv,
+		ProfileService: profileSrv,
 	}
 }
