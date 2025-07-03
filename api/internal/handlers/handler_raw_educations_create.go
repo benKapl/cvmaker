@@ -26,16 +26,16 @@ type Education struct {
 
 func (a *API) handlerRawEducationsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Label       string    `json:"label"`
-		School      string    `json:"school"`
-		Description string    `json:"description"`
-		StartDate   time.Time `json:"start_date"`
-		EndDate     time.Time `json:"end_date"`
+		Label       string     `json:"label"`
+		School      string     `json:"school"`
+		Description string     `json:"description"`
+		StartDate   *time.Time `json:"start_date"`
+		EndDate     time.Time  `json:"end_date,omitempty"`
 	}
 
 	type response struct {
-		Success   bool `json:"success"`
-		Education Education
+		Success   bool      `json:"success"`
+		Education Education `json:"education"`
 	}
 
 	userID, ok := r.Context().Value(userIDKey).(uuid.UUID)
@@ -47,9 +47,15 @@ func (a *API) handlerRawEducationsCreate(w http.ResponseWriter, r *http.Request)
 	var params parameters
 
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	err := decoder.Decode(&params)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
+		return
+	}
+	if params.StartDate == nil {
+		respond.WithError(w, http.StatusBadRequest, "start_date is a required field", nil)
 		return
 	}
 
@@ -57,7 +63,7 @@ func (a *API) handlerRawEducationsCreate(w http.ResponseWriter, r *http.Request)
 		Label:       params.Label,
 		School:      params.School,
 		Description: params.Description,
-		StartDate:   params.StartDate,
+		StartDate:   *params.StartDate,
 		EndDate:     params.EndDate,
 	})
 	if err != nil {
