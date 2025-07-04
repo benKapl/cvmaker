@@ -7,13 +7,13 @@ import (
 )
 
 func (a *API) handlerReset(w http.ResponseWriter, r *http.Request) {
-	if a.Platform != "dev" {
+	if a.AdminService.Platform != "dev" {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte("Reset is only allowed in dev environment"))
 		return
 	}
 
-	err := a.DB.DeleteUsers(r.Context())
+	err := a.AdminService.ResetDatabase(r.Context())
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Couldn't reset database", err)
 		return

@@ -19,17 +19,7 @@ func (a *API) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.DB.GetUserFromRefreshToken(r.Context(), refreshToken)
-	if err != nil {
-		respond.WithError(w, http.StatusUnauthorized, "Couldn't get user for refresh token", err)
-		return
-	}
-
-	accessToken, err := auth.MakeJWT(
-		user.ID,
-		a.JWTSecret,
-		time.Hour,
-	)
+	accessToken, err := a.AuthService.RefreshJWT(r.Context(), refreshToken, time.Hour)
 	if err != nil {
 		respond.WithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 		return
@@ -47,7 +37,7 @@ func (a *API) handlerRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = a.DB.RevokeRefreshToken(r.Context(), refreshToken)
+	_, err = a.AuthService.RevokeRefreshToken(r.Context(), refreshToken)
 	if err != nil {
 		respond.WithError(w, http.StatusUnauthorized, "Couldn't revoke session", err)
 		return

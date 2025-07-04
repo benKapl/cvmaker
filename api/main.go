@@ -8,6 +8,7 @@ import (
 	"github.com/benKapl/cvmaker-api/internal/config"
 	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/handlers"
+	"github.com/benKapl/cvmaker-api/internal/services"
 	_ "github.com/lib/pq"
 )
 
@@ -36,7 +37,17 @@ func main() {
 	llmClient := config.GetLLMClient(cfg)
 	log.Println("LLMClient: ", llmClient.String())
 
-	api := handlers.NewAPI(dbQueries, llmClient, cfg.JWTSecret, cfg.Platform)
+	adminSrv := services.NewAdminService(dbQueries, cfg.Platform)
+	authSrv := services.NewAuthService(dbQueries, cfg.JWTSecret)
+	offerSrv := services.NewOfferService(dbQueries, llmClient)
+	profileSrv := services.NewProfileService(dbQueries)
+
+	api := handlers.NewAPI(
+		adminSrv,
+		authSrv,
+		offerSrv,
+		profileSrv,
+	)
 
 	// Setup router and routes
 	mux := http.NewServeMux()

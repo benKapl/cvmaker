@@ -2,14 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/services"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type Stack struct {
@@ -22,12 +21,12 @@ type Stack struct {
 
 func (a *API) handlerRawStacksCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Label string `json:"label"`
+		Label *string `json:"label"`
 	}
 
 	type response struct {
-		Success bool `json:"success"`
-		Stack   Stack
+		Success bool  `json:"success"`
+		Stack   Stack `json:"stack"`
 	}
 
 	userID, ok := r.Context().Value(userIDKey).(uuid.UUID)
@@ -39,41 +38,38 @@ func (a *API) handlerRawStacksCreate(w http.ResponseWriter, r *http.Request) {
 	var params parameters
 
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	err := decoder.Decode(&params)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
+	if params.Label == nil || *params.Label == "" {
+		respond.WithError(w, http.StatusBadRequest, "label is a required field", services.ErrMissingField)
+		return
+	}
 
-	dbStack, err := a.DB.CreateRawStack(r.Context(), database.CreateRawStackParams{
-		Label:  strings.ToLower(params.Label),
-		UserID: userID,
+	rawStack, err := a.ProfileService.CreateRawStack(r.Context(), userID, services.CreateRawStackParams{
+		Label: *params.Label,
 	})
-
 	if err != nil {
-		pqErr, ok := err.(*pq.Error)
-		if ok {
-			if pqErr.Code == "23505" { // Duplicate Key error
-				respond.WithError(w, http.StatusBadRequest, "User's raw stack already exists", err)
-				return
-			}
+		if errors.Is(err, services.ErrDuplicateKey) {
+			respond.WithError(w, http.StatusBadRequest, "Duplicate key found", err)
+			return
 		}
-		respond.WithError(w, http.StatusInternalServerError, "Could not create raw stack", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't create rawStack", err)
 		return
 	}
 
 	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
-		Stack:   dbRawStackToStack(dbStack),
+		Stack: Stack{
+			Id:        rawStack.ID,
+			CreatedAt: rawStack.CreatedAt,
+			UpdatedAt: rawStack.UpdatedAt,
+			Label:     rawStack.Label,
+			UserID:    rawStack.UserID,
+		},
 	})
-}
-
-func dbRawStackToStack(dbRawStack database.RawStack) Stack {
-	return Stack{
-		Id:        dbRawStack.ID,
-		CreatedAt: dbRawStack.CreatedAt,
-		UpdatedAt: dbRawStack.UpdatedAt,
-		Label:     dbRawStack.Label,
-		UserID:    dbRawStack.UserID,
-	}
 }

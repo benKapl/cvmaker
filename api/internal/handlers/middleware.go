@@ -51,7 +51,7 @@ func (a *API) AuthenticateMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, err := auth.ValidateJWT(token, a.JWTSecret)
+		userID, err := a.AuthService.ValidateJWT(token)
 		if err != nil {
 			respond.WithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 			return

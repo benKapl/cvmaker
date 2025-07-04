@@ -2,14 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/respond"
+	"github.com/benKapl/cvmaker-api/internal/services"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type Hobby struct {
@@ -22,12 +21,12 @@ type Hobby struct {
 
 func (a *API) handlerRawHobbiesCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Label string `json:"label"`
+		Label *string `json:"label"`
 	}
 
 	type response struct {
-		Success bool `json:"success"`
-		Hobby   Hobby
+		Success bool  `json:"success"`
+		Hobby   Hobby `json:"hobby"`
 	}
 
 	userID, ok := r.Context().Value(userIDKey).(uuid.UUID)
@@ -39,37 +38,39 @@ func (a *API) handlerRawHobbiesCreate(w http.ResponseWriter, r *http.Request) {
 	var params parameters
 
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	err := decoder.Decode(&params)
 	if err != nil {
 		respond.WithError(w, http.StatusInternalServerError, "Could not decode parameters", err)
 		return
 	}
 
-	hobby, err := a.DB.CreateRawHobby(r.Context(), database.CreateRawHobbyParams{
-		Label:  strings.ToLower(params.Label),
-		UserID: userID,
-	})
+	if params.Label == nil || *params.Label == "" {
+		respond.WithError(w, http.StatusBadRequest, "label is a required field", services.ErrMissingField)
+		return
+	}
 
+	rawHobby, err := a.ProfileService.CreateRawHobby(r.Context(), userID, services.CreateRawHobbyParams{
+		Label: *params.Label,
+	})
 	if err != nil {
-		pqErr, ok := err.(*pq.Error)
-		if ok {
-			if pqErr.Code == "23505" { // Duplicate Key error
-				respond.WithError(w, http.StatusBadRequest, "User's raw hobby already exists", err)
-				return
-			}
+		if errors.Is(err, services.ErrDuplicateKey) {
+			respond.WithError(w, http.StatusBadRequest, "Duplicate key found", err)
+			return
 		}
-		respond.WithError(w, http.StatusInternalServerError, "Could not create raw hobby", err)
+		respond.WithError(w, http.StatusInternalServerError, "Couldn't create rawHobby", err)
 		return
 	}
 
 	respond.WithJSON(w, http.StatusCreated, response{
 		Success: true,
 		Hobby: Hobby{
-			Id:        hobby.ID,
-			CreatedAt: hobby.CreatedAt,
-			UpdatedAt: hobby.UpdatedAt,
-			Label:     hobby.Label,
-			UserID:    hobby.UserID,
+			Id:        rawHobby.ID,
+			CreatedAt: rawHobby.CreatedAt,
+			UpdatedAt: rawHobby.UpdatedAt,
+			Label:     rawHobby.Label,
+			UserID:    rawHobby.UserID,
 		},
 	})
 }
