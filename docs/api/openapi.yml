@@ -32,7 +32,7 @@ security:
   - BearerAuth: []
 
 paths:
-  /health:
+  /healthz:
     get:
       tags:
         - Health
@@ -50,9 +50,8 @@ paths:
                   status:
                     type: string
                     example: "ok"
-                  message:
-                    type: string
-                    example: "youplaboum"
+                required:
+                  - status
 
   /users:
     post:
@@ -201,11 +200,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/HobbyResponse"
         "400":
-          description: Hobby already exists for user
+          description: Bad request - validation error or hobby already exists
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                missing_field:
+                  summary: Missing required field
+                  value:
+                    error: "label is a required field"
+                duplicate_key:
+                  summary: Duplicate hobby
+                  value:
+                    error: "Duplicate key found"
         "401":
           description: Unauthorized
           content:
@@ -233,11 +241,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/StackResponse"
         "400":
-          description: Stack already exists for user
+          description: Bad request - validation error or stack already exists
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                missing_field:
+                  summary: Missing required field
+                  value:
+                    error: "label is a required field"
+                duplicate_key:
+                  summary: Duplicate stack
+                  value:
+                    error: "Duplicate key found"
         "401":
           description: Unauthorized
           content:
@@ -265,11 +282,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/EducationResponse"
         "400":
-          description: Education already exists for user
+          description: Bad request - validation error or education already exists
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                missing_start_date:
+                  summary: Missing start date
+                  value:
+                    error: "start_date is a required field"
+                missing_label:
+                  summary: Missing label
+                  value:
+                    error: "label is a required field"
+                missing_school:
+                  summary: Missing school
+                  value:
+                    error: "school is a required field"
+                missing_description:
+                  summary: Missing description
+                  value:
+                    error: "description is a required field"
+                duplicate_key:
+                  summary: Duplicate education
+                  value:
+                    error: "Duplicate key found"
         "401":
           description: Unauthorized
           content:
@@ -297,11 +335,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/ExperienceResponse"
         "400":
-          description: Experience already exists for user
+          description: Bad request - validation error or experience already exists
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                missing_start_date:
+                  summary: Missing start date
+                  value:
+                    error: "start_date is a required field"
+                missing_title:
+                  summary: Missing title
+                  value:
+                    error: "title is a required field"
+                missing_organization:
+                  summary: Missing organization
+                  value:
+                    error: "organization is a required field"
+                missing_description:
+                  summary: Missing description
+                  value:
+                    error: "description is a required field"
+                duplicate_key:
+                  summary: Duplicate experience
+                  value:
+                    error: "Duplicate key found"
         "401":
           description: Unauthorized
           content:
@@ -329,11 +388,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProjectResponse"
         "400":
-          description: Project already exists for user
+          description: Bad request - validation error or project already exists
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                missing_start_date:
+                  summary: Missing start date
+                  value:
+                    error: "start_date is a required field"
+                missing_label:
+                  summary: Missing label
+                  value:
+                    error: "label is a required field"
+                missing_description:
+                  summary: Missing description
+                  value:
+                    error: "description is a required field"
+                duplicate_key:
+                  summary: Duplicate project
+                  value:
+                    error: "Duplicate key found"
         "401":
           description: Unauthorized
           content:
@@ -858,7 +934,7 @@ components:
     OfferRequest:
       type: object
       properties:
-        body:
+        offer:
           type: string
           description: Raw job offer text content to be parsed by AI
           example: "Senior React Developer position at TechCorp. We are looking for an experienced developer with 5+ years of React experience..."
