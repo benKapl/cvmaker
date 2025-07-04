@@ -43,7 +43,6 @@ func main() {
 	profileSrv := services.NewProfileService(dbQueries)
 
 	api := handlers.NewAPI(
-		dbQueries,
 		adminSrv,
 		authSrv,
 		offerSrv,

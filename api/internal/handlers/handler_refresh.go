@@ -37,7 +37,7 @@ func (a *API) handlerRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = a.DB.RevokeRefreshToken(r.Context(), refreshToken)
+	_, err = a.AuthService.RevokeRefreshToken(r.Context(), refreshToken)
 	if err != nil {
 		respond.WithError(w, http.StatusUnauthorized, "Couldn't revoke session", err)
 		return

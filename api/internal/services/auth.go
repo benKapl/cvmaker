@@ -122,3 +122,12 @@ func (s *AuthService) RefreshJWT(ctx context.Context, refreshToken string, expir
 	return accessToken, nil
 
 }
+
+func (s *AuthService) RevokeRefreshToken(ctx context.Context, refreshToken string) (database.RefreshToken, error) {
+	dbToken, err := s.DB.RevokeRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return database.RefreshToken{}, err
+	}
+
+	return dbToken, nil
+}
