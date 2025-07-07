@@ -14,7 +14,29 @@ defaults:
     working-directory: ./api # All commands will run from the 'api' directory by default
 
 jobs:
-  deploy:
+  migrate_database:
+    name: Migrate Production Database
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.6"
+
+      - name: Install goose
+        run: go install github.com/pressly/goose/v3/cmd/goose@latest
+
+      - name: Run database migrations
+        env:
+          GOOSE_DBSTRING: ${{ secrets.DATABASE_URL }}
+        run: |
+          goose -dir sql/schema postgres "$GOOSE_DBSTRING" up
+
+  deploy_application:
     name: Deploy to Production
     runs-on: ubuntu-latest
 
@@ -32,13 +54,13 @@ jobs:
           # Note: Scaleway uses 'nologin' as the username for token-based auth
           username: nologin
           password: ${{ secrets.SCW_SECRET_KEY }}
-          
+
       - name: Build and Push Docker image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
           context: ./api
-          push: true 
+          push: true
           tags: |
             rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:latest
             rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
@@ -58,5 +80,4 @@ jobs:
           SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_ORGANIZATION_ID }}
         run: |
           CONTAINER_ID='${{ secrets.SCW_CONTAINER_RUN_SERVICE_ID }}'
-           # scw container-run deploy $CONTAINER_ID image=rg.fr-par.scw.cloud/cvmaker-namespace/cvmaker-api:${{ github.sha }}
           scw container container deploy $CONTAINER_ID
