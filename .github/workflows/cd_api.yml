@@ -31,10 +31,7 @@ jobs:
         run: go install github.com/pressly/goose/v3/cmd/goose@latest
 
       - name: Run database migrations
-        env:
-          GOOSE_DBSTRING: ${{ secrets.DATABASE_URL }}
-        run: |
-          goose -dir sql/schema postgres "$GOOSE_DBSTRING" up
+        run: goose -dir sql/schema postgres ${{ secrets.DATABASE_URL }} up
 
   deploy_application:
     name: Deploy to Production
