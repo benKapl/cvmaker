@@ -41,12 +41,14 @@ func main() {
 	authSrv := services.NewAuthService(dbQueries, cfg.JWTSecret)
 	offerSrv := services.NewOfferService(dbQueries, llmClient)
 	profileSrv := services.NewProfileService(dbQueries)
+	resumeSrv := services.NewResumeService(dbQueries, llmClient)
 
 	api := handlers.NewAPI(
 		adminSrv,
 		authSrv,
 		offerSrv,
 		profileSrv,
+		resumeSrv,
 	)
 
 	// Setup router and routes

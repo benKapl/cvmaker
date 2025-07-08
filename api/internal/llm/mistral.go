@@ -146,14 +146,6 @@ func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (G
 	}
 	defer res.Body.Close()
 
-	//	body, err := io.ReadAll(res.Body)
-	//	if err != nil {
-	//		return GenerateResponse{}, fmt.Errorf("error reading response body: %w", err)
-	////////	}
-	////////
-	//////	log.Println("Response Status:", res.Status)
-	//////	log.Println("Response Body:", string(body))
-	//////
 	var mistralResponse mistralGenerateResponse
 
 	decoder := json.NewDecoder(res.Body)
