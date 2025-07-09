@@ -1,6 +1,8 @@
 package services
 
 import (
+	"log"
+
 	"github.com/benKapl/cvmaker-api/internal/database"
 	"github.com/benKapl/cvmaker-api/internal/llm"
 )
@@ -15,4 +17,8 @@ func NewResumeService(db *database.Queries, llmClient llm.LLMClient) *ResumeServ
 		DB:        db,
 		LLMClient: llmClient,
 	}
+}
+
+func (s *ResumeService) CreateResume() {
+	log.Println("WESH")
 }
