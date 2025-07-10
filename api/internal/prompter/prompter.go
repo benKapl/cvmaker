@@ -1,13 +1,21 @@
 package prompter
 
-import "github.com/benKapl/cvmaker-api/internal/llm"
+import (
+	"context"
 
-type Prompter struct {
+	"github.com/benKapl/cvmaker-api/internal/llm"
+)
+
+type Prompter interface {
+	ParseOffer(ctx context.Context, rawOffer string) (ParsedOffer, error)
+}
+
+type DefaultPrompter struct {
 	LLMClient llm.LLMClient
 }
 
-func New(llmClient llm.LLMClient) *Prompter {
-	return &Prompter{
+func NewDefaultPrompter(llmClient llm.LLMClient) *DefaultPrompter {
+	return &DefaultPrompter{
 		LLMClient: llmClient,
 	}
 }

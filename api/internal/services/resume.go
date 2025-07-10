@@ -4,18 +4,18 @@ import (
 	"log"
 
 	"github.com/benKapl/cvmaker-api/internal/database"
-	"github.com/benKapl/cvmaker-api/internal/llm"
+	"github.com/benKapl/cvmaker-api/internal/prompter"
 )
 
 type ResumeService struct {
-	DB        database.Querier
-	LLMClient llm.LLMClient
+	DB       database.Querier
+	Prompter prompter.Prompter
 }
 
-func NewResumeService(db database.Querier, llmClient llm.LLMClient) *ResumeService {
+func NewResumeService(db database.Querier, p prompter.Prompter) *ResumeService {
 	return &ResumeService{
-		DB:        db,
-		LLMClient: llmClient,
+		DB:       db,
+		Prompter: p,
 	}
 }
 

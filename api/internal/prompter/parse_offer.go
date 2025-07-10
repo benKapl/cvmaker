@@ -53,7 +53,7 @@ var (
 	offerPromptEnd   = "\n\"\"\"\n\nJSON Output:"
 )
 
-func (p *Prompter) ParseOffer(ctx context.Context, rawOffer string) (ParsedOffer, error) {
+func (p *DefaultPrompter) ParseOffer(ctx context.Context, rawOffer string) (ParsedOffer, error) {
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
 	params := &llm.GenerateParams{
 		Prompt: prompt,

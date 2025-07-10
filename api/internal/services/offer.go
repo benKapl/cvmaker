@@ -6,25 +6,24 @@ import (
 	"fmt"
 
 	"github.com/benKapl/cvmaker-api/internal/database"
-	"github.com/benKapl/cvmaker-api/internal/llm"
 	"github.com/benKapl/cvmaker-api/internal/prompter"
 	"github.com/google/uuid"
 )
 
 type OfferService struct {
-	DB        database.Querier
-	LLMClient llm.LLMClient
+	DB       database.Querier
+	Prompter prompter.Prompter
 }
 
-func NewOfferService(db database.Querier, llmClient llm.LLMClient) *OfferService {
+func NewOfferService(db database.Querier, p prompter.Prompter) *OfferService {
 	return &OfferService{
-		DB:        db,
-		LLMClient: llmClient,
+		DB:       db,
+		Prompter: p,
 	}
 }
 
 func (s *OfferService) CreateOffer(ctx context.Context, userID uuid.UUID, rawOffer string) (database.Offer, error) {
-	parsedOffer, err := prompter.ParseOffer(ctx, rawOffer, s.LLMClient)
+	parsedOffer, err := s.Prompter.ParseOffer(ctx, rawOffer)
 	if err != nil {
 		return database.Offer{}, fmt.Errorf("couldn't parse offer: %w", err)
 	}
