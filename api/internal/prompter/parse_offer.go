@@ -53,7 +53,7 @@ var (
 	offerPromptEnd   = "\n\"\"\"\n\nJSON Output:"
 )
 
-func ParseOffer(ctx context.Context, rawOffer string, llmClient llm.LLMClient) (ParsedOffer, error) {
+func (p *Prompter) ParseOffer(ctx context.Context, rawOffer string) (ParsedOffer, error) {
 	prompt := fmt.Sprintf("%s%s%s", offerPromptStart, rawOffer, offerPromptEnd)
 	params := &llm.GenerateParams{
 		Prompt: prompt,
@@ -61,7 +61,7 @@ func ParseOffer(ctx context.Context, rawOffer string, llmClient llm.LLMClient) (
 		Stream: false,
 	}
 
-	response, err := llmClient.Generate(ctx, params)
+	response, err := p.LLMClient.Generate(ctx, params)
 	if err != nil {
 		return ParsedOffer{}, fmt.Errorf("LLM generation failed: %w", err)
 	}
