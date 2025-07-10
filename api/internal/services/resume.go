@@ -8,11 +8,11 @@ import (
 )
 
 type ResumeService struct {
-	DB        database.Storer
+	DB        database.Querier
 	LLMClient llm.LLMClient
 }
 
-func NewResumeService(db database.Storer, llmClient llm.LLMClient) *ResumeService {
+func NewResumeService(db database.Querier, llmClient llm.LLMClient) *ResumeService {
 	return &ResumeService{
 		DB:        db,
 		LLMClient: llmClient,

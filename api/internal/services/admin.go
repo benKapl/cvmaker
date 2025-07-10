@@ -7,11 +7,11 @@ import (
 )
 
 type AdminService struct {
-	DB       database.Storer
+	DB       database.Querier
 	Platform string
 }
 
-func NewAdminService(db database.Storer, platform string) *AdminService {
+func NewAdminService(db database.Querier, platform string) *AdminService {
 	return &AdminService{
 		DB:       db,
 		Platform: platform,
