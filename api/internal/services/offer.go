@@ -12,11 +12,11 @@ import (
 )
 
 type OfferService struct {
-	DB        *database.Queries
+	DB        database.Storer
 	LLMClient llm.LLMClient
 }
 
-func NewOfferService(db *database.Queries, llmClient llm.LLMClient) *OfferService {
+func NewOfferService(db database.Storer, llmClient llm.LLMClient) *OfferService {
 	return &OfferService{
 		DB:        db,
 		LLMClient: llmClient,

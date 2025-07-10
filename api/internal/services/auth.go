@@ -14,11 +14,11 @@ import (
 )
 
 type AuthService struct {
-	DB        *database.Queries
+	DB        database.Storer
 	JWTSecret string
 }
 
-func NewAuthService(db *database.Queries, jwtSecret string) *AuthService {
+func NewAuthService(db database.Storer, jwtSecret string) *AuthService {
 	return &AuthService{
 		DB:        db,
 		JWTSecret: jwtSecret,

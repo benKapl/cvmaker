@@ -13,10 +13,10 @@ import (
 )
 
 type ProfileService struct {
-	DB *database.Queries
+	DB database.Storer
 }
 
-func NewProfileService(db *database.Queries) *ProfileService {
+func NewProfileService(db database.Storer) *ProfileService {
 	return &ProfileService{
 		DB: db,
 	}
