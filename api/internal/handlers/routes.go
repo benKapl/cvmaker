@@ -25,6 +25,8 @@ func (a *API) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/raw/projects", a.AuthenticateMiddleware(http.HandlerFunc(a.handlerRawProjectsCreate)))
 	// Offers management
 	mux.Handle("POST /api/offers", a.AuthenticateMiddleware(http.HandlerFunc(a.handlerOffersCreate)))
+	// Resume management
+	mux.Handle("POST /api/resumes", a.AuthenticateMiddleware(http.HandlerFunc(a.handlerResumesCreate)))
 
 	log.Println("Registered API routes")
 }

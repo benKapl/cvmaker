@@ -41,7 +41,7 @@ func (a *API) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	user, err := a.AuthService.CreateUser(r.Context(), params.Email, params.Password)
 	if err != nil {
 		if errors.Is(err, services.ErrDuplicateKey) {
-			respond.WithError(w, http.StatusBadRequest, "Duplicate key found", err)
+			respond.WithError(w, http.StatusConflict, "Duplicate key found", err)
 			return
 		}
 		respond.WithError(w, http.StatusInternalServerError, "Couldn't create user", err)

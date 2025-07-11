@@ -73,7 +73,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-        "400":
+        "409":
           description: User already exists (duplicate email)
           content:
             application/json:
@@ -200,7 +200,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/HobbyResponse"
         "400":
-          description: Bad request - validation error or hobby already exists
+          description: Bad request - validation error
           content:
             application/json:
               schema:
@@ -210,6 +210,13 @@ paths:
                   summary: Missing required field
                   value:
                     error: "label is a required field"
+        "409":
+          description: Conflict - hobby already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
                 duplicate_key:
                   summary: Duplicate hobby
                   value:
@@ -241,7 +248,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/StackResponse"
         "400":
-          description: Bad request - validation error or stack already exists
+          description: Bad request - validation error
           content:
             application/json:
               schema:
@@ -251,6 +258,13 @@ paths:
                   summary: Missing required field
                   value:
                     error: "label is a required field"
+        "409":
+          description: Conflict - stack already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
                 duplicate_key:
                   summary: Duplicate stack
                   value:
@@ -282,7 +296,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/EducationResponse"
         "400":
-          description: Bad request - validation error or education already exists
+          description: Bad request - validation error
           content:
             application/json:
               schema:
@@ -304,6 +318,13 @@ paths:
                   summary: Missing description
                   value:
                     error: "description is a required field"
+        "409":
+          description: Conflict - education already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
                 duplicate_key:
                   summary: Duplicate education
                   value:
@@ -335,7 +356,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ExperienceResponse"
         "400":
-          description: Bad request - validation error or experience already exists
+          description: Bad request - validation error
           content:
             application/json:
               schema:
@@ -357,6 +378,13 @@ paths:
                   summary: Missing description
                   value:
                     error: "description is a required field"
+        "409":
+          description: Conflict - experience already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
                 duplicate_key:
                   summary: Duplicate experience
                   value:
@@ -388,7 +416,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProjectResponse"
         "400":
-          description: Bad request - validation error or project already exists
+          description: Bad request - validation error
           content:
             application/json:
               schema:
@@ -406,6 +434,13 @@ paths:
                   summary: Missing description
                   value:
                     error: "description is a required field"
+        "409":
+          description: Conflict - project already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
                 duplicate_key:
                   summary: Duplicate project
                   value:

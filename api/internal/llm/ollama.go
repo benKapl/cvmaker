@@ -47,6 +47,9 @@ func (c *OllamaClient) String() string {
 	return fmt.Sprintf("OllamaClient (model: %s)", c.model)
 }
 
+// Checks that OllamaCLient implements the LLMCLient interface
+var _ LLMClient = (*OllamaClient)(nil)
+
 func (c *OllamaClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
 	url := c.baseUrl + "/api/generate"
 
