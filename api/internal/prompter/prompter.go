@@ -19,3 +19,7 @@ func NewDefaultPrompter(llmClient llm.LLMClient) *DefaultPrompter {
 		LLMClient: llmClient,
 	}
 }
+
+var _ Prompter = (*DefaultPrompter)(nil)
+
+

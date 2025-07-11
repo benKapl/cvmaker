@@ -88,27 +88,30 @@ type mistralGenerateResponse struct {
 	} `json:"choices"`
 }
 
-type mistralClient struct {
+type MistralClient struct {
 	baseClient
 	model string
 }
 
-func NewMistralClient(url, apiKey string, timeout time.Duration) *mistralClient {
+func NewMistralClient(url, apiKey string, timeout time.Duration) *MistralClient {
 	baseClient := newBaseClient(url, apiKey, timeout)
-	return &mistralClient{
+	return &MistralClient{
 		baseClient: baseClient,
-		model:      "mistral-small-latest", // TO BE REFACTOR AS CONFIG PARAMETER !
+		model:      "Mistral-small-latest", // TO BE REFACTOR AS CONFIG PARAMETER !
 	}
 }
 
-func (c *mistralClient) String() string {
+func (c *MistralClient) String() string {
 	return fmt.Sprintf("MistralClient (model: %s)", c.model)
 }
 
-func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
+// Checks that MistralClient implements the LLMCLient interface
+var _ LLMClient = (*MistralClient)(nil)
+
+func (c *MistralClient) Generate(ctx context.Context, params *GenerateParams) (GenerateResponse, error) {
 	url := c.baseUrl + "/v1/chat/completions"
 
-	mistralParams := &mistralGenerateParams{
+	MistralParams := &mistralGenerateParams{
 		Model:  c.model,
 		Stream: params.Stream,
 		Messages: []Message{
@@ -127,7 +130,7 @@ func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (G
 		},
 	}
 
-	jsonData, err := json.Marshal(*mistralParams)
+	jsonData, err := json.Marshal(*MistralParams)
 	if err != nil {
 		return GenerateResponse{}, err
 	}
@@ -146,16 +149,16 @@ func (c *mistralClient) Generate(ctx context.Context, params *GenerateParams) (G
 	}
 	defer res.Body.Close()
 
-	var mistralResponse mistralGenerateResponse
+	var MistralResponse mistralGenerateResponse
 
 	decoder := json.NewDecoder(res.Body)
-	err = decoder.Decode(&mistralResponse)
+	err = decoder.Decode(&MistralResponse)
 	if err != nil {
 		return GenerateResponse{}, err
 	}
 
 	response := GenerateResponse{
-		Content: mistralResponse.Choices[0].Message.Content,
+		Content: MistralResponse.Choices[0].Message.Content,
 	}
 
 	return response, nil
